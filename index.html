@@ -1,62 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>501 Dart Scoring</title>
+	<title>Dartboard</title>
+	<style>
+		/* Set up the dartboard */
+		.dartboard {
+			width: 400px;
+			height: 400px;
+			background-color: black;
+			border-radius: 50%;
+			position: relative;
+		}
+		
+		/* Add the scoring sections */
+		.section {
+			position: absolute;
+			border-radius: 50%;
+			background-color: white;
+			opacity: 0.5;
+			cursor: pointer;
+		}
+		
+		/* Adjust the positions and sizes of the scoring sections */
+		.inner-bull {
+			top: 40%;
+			left: 40%;
+			width: 20%;
+			height: 20%;
+			background-color: red;
+			opacity: 1;
+		}
+		.outer-bull {
+			top: 30%;
+			left: 30%;
+			width: 40%;
+			height: 40%;
+			background-color: green;
+		}
+		.triple {
+			top: 10%;
+			left: 10%;
+			width: 80%;
+			height: 80%;
+			background-color: blue;
+		}
+		.double {
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: yellow;
+		}
+		.treble-20 {
+			top: 2%;
+			left: 2%;
+			width: 96%;
+			height: 96%;
+			background-color: purple;
+		}
+	</style>
 </head>
 <body>
-	<h1>501 Dart Scoring</h1>
-
-	<p>Player 1 score: <span id="player1Score">501</span></p>
-	<p>Player 2 score: <span id="player2Score">501</span></p>
-
-	<p>Player <span id="currentPlayer">1</span>, enter your score for this turn:</p>
-	<input type="number" id="scoreInput">
-	<button onclick="submitScore()">Submit</button>
+	<div class="dartboard">
+		<div class="section inner-bull"></div>
+		<div class="section outer-bull"></div>
+		<div class="section triple"></div>
+		<div class="section double"></div>
+		<div class="section treble-20"></div>
+	</div>
 
 	<script>
-		let player1Score = 501;
-		let player2Score = 501;
-		let currentPlayer = 1;
-
-		function submitScore() {
-			let score = parseInt(document.getElementById("scoreInput").value);
-			if (isNaN(score) || score < 0 || score > 180) {
-				alert("Invalid score. Please enter a number between 0 and 180.");
-				return;
-			}
-
-			if (currentPlayer == 1) {
-				player1Score -= score;
-				document.getElementById("player1Score").innerText = player1Score;
-				if (player1Score == 0) {
-					alert("Player 1 wins!");
-					location.reload();
-				} else if (player1Score < 0) {
-					alert("Bust! Player 2's turn.");
-					player1Score += score;
-					document.getElementById("player1Score").innerText = player1Score;
-					currentPlayer = 2;
-				} else {
-					currentPlayer = 2;
-				}
-			} else {
-				player2Score -= score;
-				document.getElementById("player2Score").innerText = player2Score;
-				if (player2Score == 0) {
-					alert("Player 2 wins!");
-					location.reload();
-				} else if (player2Score < 0) {
-					alert("Bust! Player 1's turn.");
-					player2Score += score;
-					document.getElementById("player2Score").innerText = player2Score;
-					currentPlayer = 1;
-				} else {
-					currentPlayer = 1;
-				}
-			}
-
-			document.getElementById("scoreInput").value = "";
-			document.getElementById("currentPlayer").innerText = currentPlayer;
+		// Add event listeners to the scoring sections
+		var sections = document.getElementsByClassName("section");
+		for (var i = 0; i < sections.length; i++) {
+			sections[i].addEventListener("click", function() {
+				// Get the score of the section that was clicked
+				var score = this.getAttribute("data-score");
+				console.log(score);
+				// Here, you can add code to update the player's score or do something else with the score value
+			});
 		}
 	</script>
 </body>
