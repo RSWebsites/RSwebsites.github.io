@@ -1,13 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My Website</title>
+    <title>501 Darts Scorer</title>
   </head>
   <body>
-    <h1>Welcome to my website!</h1>
-    <p>Here is some content for my website.</p>
+    <h1>501 Darts Scorer</h1>
+    <p>Enter the score for each of your three darts:</p>
+    <form>
+      <label for="dart1">Dart 1:</label>
+      <input type="number" id="dart1" name="dart1" min="0" max="60"><br><br>
+      <label for="dart2">Dart 2:</label>
+      <input type="number" id="dart2" name="dart2" min="0" max="60"><br><br>
+      <label for="dart3">Dart 3:</label>
+      <input type="number" id="dart3" name="dart3" min="0" max="60"><br><br>
+      <input type="button" value="Submit" onclick="calculateScore()">
+    </form>
+    <p>Your total score is: <span id="totalScore"></span></p>
+    <script>
+      function calculateScore() {
+        var dart1 = parseInt(document.getElementById("dart1").value);
+        var dart2 = parseInt(document.getElementById("dart2").value);
+        var dart3 = parseInt(document.getElementById("dart3").value);
+        var totalScore = dart1 + dart2 + dart3;
+        document.getElementById("totalScore").innerHTML = totalScore;
+      }
+    </script>
   </body>
-  <footer>
-    <p>Copyright © 2023 My Website</p>
-  </footer>
 </html>
