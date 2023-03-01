@@ -1,292 +1,50 @@
-<!DOCTYPE html>
 <html>
-<head>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Darts Scorekeeper</title>
+      <link rel="stylesheet" href="styles.css">
+      <script src="script.js"></script>
+    </head>
+  <body>
+    <header>
+      <img src="logo.png" alt="Darts Scorekeeper Logo">
+      <h1>Darts Scorekeeper</h1>
+    </header>
+    <main>
+      <div class="player-names">
+        <div class="player-name">
+          <h2>Player 1</h2>
+          <p class="player-score">501</p>
+        </div>
+        <div class="player-name">
+          <h2>Player 2</h2>
+          <p class="player-score">501</p>
+        </div>
+      </div>
+      <div class="current-player">
+        <h2>Current player:</h2>
+        <p class="player-turn">Player 1</p>
+      </div>
+      <div class="keypad-input-display">
+      <h2>Enter score:</h2>
+      <div id="keypad-display">0</div>
+    </div>
+    <div class="keypad">
+    <input type="button" class="keypad-button" value="1" id="btn1">
+    <input type="button" class="keypad-button" value="2" id="btn2">
+    <input type="button" class="keypad-button" value="3" id="btn3">
+    <input type="button" class="keypad-button" value="4" id="btn4">
+    <input type="button" class="keypad-button" value="5" id="btn5">
+    <input type="button" class="keypad-button" value="6" id="btn6">
+    <input type="button" class="keypad-button" value="7" id="btn7">
+    <input type="button" class="keypad-button" value="8" id="btn8">
+    <input type="button" class="keypad-button" value="9" id="btn9">
+<input type="button" class="keypad-button" value="C" id="btnReset">
+<input type="button" class="keypad-button" value="0" id="btn0">
+<input type="button" class="keypad-button" value="=" id="btnSubmit">
 
-<script>
-const PLAYER1 = 1;
-const PLAYER2 = 2;
-
-let currentPlayer = PLAYER1;
-let player1Score = 501;
-let player2Score = 501;
-
-function updateScores(score) {
-  if (currentPlayer === PLAYER1) {
-    player1Score -= score;
-    document.getElementById("player1Score").innerHTML = player1Score;
-    if (player1Score === 0) {
-      alert("Player 1 wins!");
-    }
-    currentPlayer = PLAYER2;
-  } else {
-    player2Score -= score;
-    document.getElementById("player2Score").innerHTML = player2Score;
-    if (player2Score === 0) {
-      alert("Player 2 wins!");
-    }
-    currentPlayer = PLAYER1;
-  }
-  document.getElementById("currentPlayer").innerHTML = currentPlayer;
-}
-
-document.querySelectorAll(".dartboard .number").forEach(number => {
-  number.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML);
-    updateScores(score);
-  });
-});
-
-document.querySelectorAll(".dartboard .double").forEach(double => {
-  double.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML) * 2;
-    updateScores(score);
-  });
-});
-
-document.querySelectorAll(".dartboard .triple").forEach(triple => {
-  triple.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML) * 3;
-    updateScores(score);
-  });
-});
-
-document.querySelector("#newGame").addEventListener("click", event => {
-  player1Score = 501;
-  player2Score = 501;
-  currentPlayer = PLAYER1;
-  document.getElementById("player1Score").innerHTML = player1Score;
-  document.getElementById("player2Score").innerHTML = player2Score;
-  document.getElementById("currentPlayer").innerHTML = currentPlayer;
-});
-
-</script>
-
-
-	<title>501 Dart Scoring</title>
- <style>
-      /* Set up the dartboard */
-      .dartboard {
-        width: 400px;
-        height: 400px;
-        background-color: black;
-        border-radius: 50%;
-        position: relative;
-      }
-
-      .dartboard::before {
-        content: "";
-        display: block;
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-        border-radius: 50%;
-        background-color: #FFFFFF;
-      }
-
-      .dartboard::after {
-        content: "";
-        display: block;
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        margin-top: -2px;
-        height: 4px;
-        background-color: #000000;
-      }
-
-      .dartboard .number {
-        position: absolute;
-        font-size: 2em;
-        color: #FFFFFF;
-        font-weight: bold;
-        transform: translate(-50%, -50%);
-      }
-
-      .dartboard .inner {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background-color: #007F00;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-      }
-
-      .dartboard .outer {
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background-color: #FFFFFF;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-      }
-
-      .dartboard .double {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #FFA500;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-      }
-
-      .dartboard .triple {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #FF0000;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-      }
-
-      .dartboard .center {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #FFFFFF;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-      }
-
-      .dartboard .number:nth-child(1) {
-        top: 50%;
-        left: 50%;
-      }
-
-      .dartboard .number:nth-child(2) {
-        top: 15%;
-        left: 50%;
-      }
-
-      .dartboard .number:nth-child(3) {
-        top: 85%;
-        left: 50%;
-      }
-    .dartboard .number:nth-child(4) {
-  top: 50%;
-  left: 15%;
-}
-
-.dartboard .number:nth-child(5) {
-  top: 12%;
-  left: 50%;
-}
-
-.dartboard .number:nth-child(6) {
-  top: 50%;
-  left: 85%;
-}
-
-.dartboard .number:nth-child(7) {
-  top: 88%;
-  left: 50%;
-}
-
-.dartboard .number:nth-child(8) {
-  top: 30%;
-  left: 30%;
-}
-
-.dartboard .number:nth-child(9) {
-  top: 30%;
-  left: 70%;
-}
-
-.dartboard .number:nth-child(10) {
-  top: 70%;
-  left: 70%;
-}
-
-.dartboard .number:nth-child(11) {
-  top: 70%;
-  left: 30%;
-}
-
-.dartboard .number {
-  position: absolute;
-  display: block;
-  width: 6%;
-  height: 6%;
-  line-height: 100%;
-  text-align: center;
-  font-size: 2em;
-  font-family: sans-serif;
-  color: #FFF;
-  text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
-  background: #000;
-  border-radius: 50%;
-  cursor: default;
-}
-	</style>
-	
-	</head>
-<body>
-	<h1>501 Dart Scoring</h1>
-<p>Player 1 score: <span id="player1Score">501</span></p>
-<p>Player 2 score: <span id="player2Score">501</span></p>
-
-<p>Player <span id="currentPlayer">1</span>, enter your score for this turn:</p>
-<input type="number" id="scoreInput">
-<button onclick="submitScore()">Submit</button>
-
-<div class="dartboard" onclick="markDart(event)">
-	<div class="number">20</div>
-	<div class="number">1</div>
-	<div class="number">18</div>
-	<div class="number">4</div>
-	<div class="number">13</div>
-	<div class="number">6</div>
-	<div class="number">10</div>
-	<div class="number">15</div>
-	<div class="number">2</div>
-	<div class="number">17</div>
-	<div class="number">3</div>
-	<div class="number">19</div>
-	<div class="number">7</div>
-	<div class="number">16</div>
-	<div class="number">8</div>
-	<div class="number">11</div>
-	<div class="number">14</div>
-	<div class="number">9</div>
-	<div class="double" data-value="20"></div>
-	<div class="double" data-value="1"></div>
-	<div class="double" data-value="18"></div>
-	<div class="double" data-value="4"></div>
-	<div class="double" data-value="13"></div>
-	<div class="double" data-value="6"></div>
-	<div class="double" data-value="10"></div>
-	<div class="double" data-value="15"></div>
-	<div class="double" data-value="2"></div>
-	<div class="double" data-value="17"></div>
-	<div class="double" data-value="3"></div>
-	<div class="double" data-value="19"></div>
-	<div class="double" data-value="7"></div>
-	<div class="double" data-value="16"></div>
-	<div class="double" data-value="8"></div>
-	<div class="double" data-value="11"></div>
-	<div class="double" data-value="14"></div>
-	<div class="double" data-value="9"></div>
-	<div class="inner-bullseye"></div>
-	<div class="outer-bullseye"></div>
-</div>
-
-<button id="newGame">New Game</button>
+  </div>
+</main>
 </body>
 </html>
