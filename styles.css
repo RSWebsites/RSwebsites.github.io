@@ -247,11 +247,19 @@ a.no-style:focus {
 @media (max-width: 500px) {  /* Adjust the 500px value to the point where you want the styles to apply */
     .Maps {
         flex-direction: row;  /* Stack the buttons vertically on narrow screens */
-		font-size:70%;
-	}
+		font-size:70%;}
 	
+    .Maps span {
+        margin-top: 5px;  /* Add spacing to the top of each button */
+        margin-bottom: 5px;  /* Add spacing to the bottom of each button */
+    }
+}
 
-
+@media (max-width: 400px) {  /* Adjust the 500px value to the point where you want the styles to apply */
+    .Maps {
+        flex-direction: row;  /* Stack the buttons vertically on narrow screens */
+		font-size:60%;}
+	
     .Maps span {
         margin-top: 5px;  /* Add spacing to the top of each button */
         margin-bottom: 5px;  /* Add spacing to the bottom of each button */
