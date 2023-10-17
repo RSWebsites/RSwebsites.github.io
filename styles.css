@@ -167,19 +167,19 @@ a.no-style:focus {
 }
 
 
-.start-now-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    background-color: #D8BFD8;
-    border-radius: 50px;
+.start-now-btn::before {
+    padding: 10px 20px;
+    background-color: #ffffff;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 24px;
+    color: #000;
     position: relative;
-    transition: background-color 0.3s, transform 0.2s;
+    z-index: 2;
+    display: inline-block;
+    text-align: center;
     cursor: pointer;
-}
-
-.start-now-btn:hover {
-    background-color: #C695C6;
-    transform: scale(1.05);
+    overflow: hidden; /* To ensure the shadow doesn't extend beyond the border-radius */
 }
 
 .start-now-btn::after {
@@ -187,22 +187,50 @@ a.no-style:focus {
     display: inline-block;
     width: 8px;
     height: 8px;
-    border-top: 2px solid white;
-    border-right: 2px solid white;
+    border-top: 4px solid #222;
+    border-right: 4px solid #222;
     transform: rotate(45deg);
-    position: absolute;
+    position: relative;
     top: 50%;
     right: 10px;
     margin-top: -4px;
 }
+
+.start-now-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #FFC2D1;
+    border: 3px solid black ;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 110%;
+    color: #000;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.start-now-btn:hover {
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.start-now-btn:active {
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
+    transform: translateY(1px);
+}
+
+
 
 .start-now-btn-grey::after {
     content: '';
     display: inline-block;
     width: 8px;
     height: 8px;
-    border-top: 2px solid #222;
-    border-right: 2px solid #222;
+    border-top: 4px solid #222;
+    border-right: 4px solid #222;
     transform: rotate(45deg);
     position: relative;
     top: 50%;
