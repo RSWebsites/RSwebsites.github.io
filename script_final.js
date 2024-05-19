@@ -2,15 +2,14 @@ const player = document.getElementById("player");
 const progressBar = document.getElementById("progressBar");
 
 let tracks = [
-    "Train.mp3", 
     "Disclaimer.mp3", 
-    "Pantiles.mp3", 
-    "Band-Stand.mp3", 
-    "Chapel.mp3", 
-    "Forum.mp3", 
+    "Train.mp3", 
     "High-Street.mp3", 
+    "Forum.mp3", 
+    "Chapel.mp3", 
     "Spring.mp3", 
-    "Tunbridge-Wells-Train-Station.mp3"
+	"Pantiles.mp3", 
+    "Band-Stand.mp3", 
 ];
 
 let currentTrackIndex = 0; // Ensure the initial index is set to 0
