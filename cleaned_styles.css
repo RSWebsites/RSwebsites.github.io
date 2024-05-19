@@ -1,0 +1,463 @@
+/* Reset */
+* {
+margin: 0;
+    padding: 0;
+}
+
+body {
+font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Typography */
+.title {
+font-family: 'Young Serif', serif;
+    font-size: 100%;
+}
+
+.description {
+font-family: 'Arial', sans-serif;
+    font-size: 100%;
+}
+
+/* General Components */
+.box {
+background: #FFFFFF;
+    padding-top: 20px;
+    margin-top: 20px;
+    border-radius: 20px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Special Boxes */
+.box-route {
+background-color: #CCE7FF;
+	padding:0px;
+    margin-left: 10px;
+	padding-left: 10px;
+	z-index: 1000; /* High z-index value to ensure it's on top */
+    visibility: visible !important; /* Ensuring the box is visible */
+    position: relative; /* Relative positioning to support z-index */
+}
+
+/* Buttons */
+button {
+background: none;
+    border: none;
+    font-size: 100%;
+    cursor: pointer;
+    text-align: left;
+}
+
+.start-now-btn-grey::after {
+content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-top: 4px solid #222;
+    border-right: 4px solid #222;
+    transform: rotate(45deg);
+    position: relative;
+    top: 50%;
+    right: 10px;
+    margin-top: -4px;
+}
+
+/* Track List */
+#trackList {
+display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+#trackList button {
+padding: 8px 18px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #E0BBE4;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+#trackList button:hover {
+transform: scale(1.05);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    background-color: #D0A6D2;
+}
+
+#trackList button:active, 
+#trackList button:focus {
+transform: scale(1);
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+.player-container-shadow { 
+	margin-bottom: 200px; /* Ensures that the bottom can be read and isn't obscured by the fixed player*/
+}
+
+/* Player Controls */
+.player-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #fff;
+    border-radius: 10px 10px 0 0; /* Only top rounded corners */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;  
+padding: 10px 0;  /* Add padding for better look */
+margin-bottom:3%;
+}
+
+
+
+.buttons-container {
+display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background: none;
+    margin-bottom: 10px; /* Spacing between buttons and scrubber */
+	  margin: 0 5%;
+}
+
+.buttons-container img {
+	width: 80%;
+}
+
+.scrubber {
+width: 100%;
+    display: flex;
+    justify-content: center;
+	padding-bottom:10px;
+}
+
+#progressBar {
+width: 70%;
+    margin: 0 5%;
+	
+}
+
+.time-display {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.time-passed, .time-left {
+    font-size: 12px;
+    position: absolute;
+    top: 20px;
+	margin-left: 15%;
+	margin-right:15%;
+}
+
+.time-passed {
+    left: 0;
+}
+
+.time-left {
+    right: 0;
+}
+
+
+/* Image */
+.image-container {
+width: 100%;
+    height: 20vh;
+	padding-top:0px;
+	margin-top:0px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.image-container img {
+background-size: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+	margin:0px;
+	padding:0px;
+}
+
+.box .image-container {
+padding-top: 0;
+}
+
+body {
+font-family: 'Poppins', sans-serif;
+	background-color: #F2F4F6; /* Background color */
+}
+
+.box-timeline {
+margin-left: 5%;
+	padding:0px;
+padding:left:5px;
+}
+
+.timeline {
+position: relative;
+    max-width: 400px;
+    margin: 0px 30px;
+}
+
+.timeline::before {
+content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0px;
+            width: 2px;
+            background-color: #D0D3D6; /* Line color */
+            z-index: 0;
+}
+
+.progress {
+content: '';
+            position: absolute;
+            top: 0;
+			left 0;
+            left: -0px;
+            width: 2px;
+            background-color: #A8D5E2 ; /* Progress color */
+            z-index: 1;
+}
+
+.timeline {
+position: relative;
+    max-width: 400px;
+    margin: 50px auto;
+}
+
+.timeline::before {
+content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0px;
+    width: 2px;
+    background-color: #D0D3D6;
+    z-index: 0;
+}
+
+.progress {
+content: '';
+    position: absolute;
+    top: 0;
+    left 0;
+    left: -0px;
+    width: 2px;
+    background-color: #A8D5E2;
+    z-index: 1;
+}
+
+.event {
+position: relative;
+    margin-bottom: 0px;
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+.details {
+padding: 10px 20px;
+    padding-left: 40px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.5s;
+    padding-left: 30px;
+}
+
+.details.active {
+background-color: #A8D5E2;
+}
+
+.details::before {
+content: '';
+    position: absolute;
+    top: 50%;
+    left: -30px;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #D0D3D6;
+    border: 3px solid #ECEEF1;
+    z-index: 2;
+    transition: background-color 0.5s;
+}
+
+.details.active::before {
+background-color: #A8D5E2;
+    border-color: #F2F4F6;
+}
+
+small {
+font-size: 75%;
+    color:gray;
+}
+
+
+
+.forward-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="47.5" stroke="%23000000" stroke-width="5" fill="none" stroke-dasharray="295.31" stroke-dashoffset="73.83" /><text x="80" y="95" text-anchor="middle" font-family="Arial" font-size="36" font-weight="700" fill="%23000">+20</text><polygon points="70,20 90,35 70,50" fill="%23000000"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: relative; /* This allows us to position the span relative to the icon div */
+}
+
+
+.backward-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="47.5" stroke="%23000000" stroke-width="5" fill="none" stroke-dasharray="223.84,74.61" transform="rotate(-90, 80, 80)" /><text x="80" y="95" text-anchor="middle" font-family="Arial" font-size="36" font-weight="700" fill="%23000">-20</text><polygon points="90,20 70,35 90,50" fill="%23000000"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+
+
+.timer-icon {
+    width: 100px;
+    height: 100px;
+    border: 5px solid black;
+    border-top-color: transparent;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-icon span {
+    font-size: 36px;
+    font-family: 'Open Sans', sans-serif;
+    transform: rotate(-50deg);
+}
+
+.timer-icon .arrow {
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 20px solid black;
+    position: absolute;
+    top: 3px;
+    left: 15px;
+    transform: translateX(-50%) rotate(40deg);
+}
+
+
+.scale-btn {
+  transform: scale(0.2) rotate(50deg);  /* Reduce the size to 70% */
+  transform-origin: center; /* Ensure it scales from the center */
+}
+
+.scale-btn span {
+  font-size: 36px; /* Adjust font size accordingly */
+}
+
+
+
+/* MAPS */
+
+
+.box-route {
+    background-color: #CCE7FF;
+ }
+
+.title {
+    font-family: 'Young Serif', serif;
+    font-size: 120%;
+}
+
+.justify {
+    text-align: justify;
+}
+
+.tour-text-desc {
+    color: #666666;
+}
+
+.Maps {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    flex-wrap: wrap; /* Allows the buttons to wrap onto the next line if they don't fit side by side */
+}
+
+.Maps span {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 2px solid black; /* Bold black border */
+    border-radius: 25px; /* Rounded corners to create a pill effect */
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer; /* Indicates interactivity */
+    margin-right: 10px; /* Space between the two links */
+    background-color: transparent; /* Transparent background */
+    transition: background-color 0.3s; /* Transition for hover effect */
+}
+
+.Maps span:hover {
+    background-color: rgba(0, 0, 0, 0.1); /* Slight gray shade on hover */
+}
+
+.start-now-btn-grey::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-top: 4px solid #222;
+    border-right: 4px solid #222;
+    transform: rotate(45deg);
+    position: relative;
+    top: 50%;
+    right: 10px;
+    margin-top: -4px;
+}
+
+a.no-style {
+    text-decoration: none;
+    color: inherit; /* Ensures link has the same color as surrounding text */
+}
+
+a.no-style:hover,
+a.no-style:focus {
+    text-decoration: none; /* Keeps underlines away on hover/focus */
+}
+
+@media (max-width: 500px) { /* Adjust the 500px value to the point where you want the styles to apply */
+    .Maps {
+        flex-direction: row; /* Stack the buttons vertically on narrow screens */
+        font-size: 90%;
+    }
+
+    .Maps span {
+        margin-top: 5px; /* Add spacing to the top of each button */
+        margin-bottom: 5px; /* Add spacing to the bottom of each button */
+    }
+}
+
+@media (max-width: 400px) { /* Adjust the 500px value to the point where you want the styles to apply */
+    .Maps {
+        flex-direction: row; /* Stack the buttons vertically on narrow screens */
+        font-size: 80%;
+        margin-right: 0px;
+        margin-left: 0px;
+    }
+
+    .Maps span {
+        margin-top: 5px; /* Add spacing to the top of each button */
+        margin-bottom: 5px;
+    }
+}
