@@ -1,292 +1,135 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
-
-<script>
-const PLAYER1 = 1;
-const PLAYER2 = 2;
-
-let currentPlayer = PLAYER1;
-let player1Score = 501;
-let player2Score = 501;
-
-function updateScores(score) {
-  if (currentPlayer === PLAYER1) {
-    player1Score -= score;
-    document.getElementById("player1Score").innerHTML = player1Score;
-    if (player1Score === 0) {
-      alert("Player 1 wins!");
-    }
-    currentPlayer = PLAYER2;
-  } else {
-    player2Score -= score;
-    document.getElementById("player2Score").innerHTML = player2Score;
-    if (player2Score === 0) {
-      alert("Player 2 wins!");
-    }
-    currentPlayer = PLAYER1;
-  }
-  document.getElementById("currentPlayer").innerHTML = currentPlayer;
-}
-
-document.querySelectorAll(".dartboard .number").forEach(number => {
-  number.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML);
-    updateScores(score);
-  });
-});
-
-document.querySelectorAll(".dartboard .double").forEach(double => {
-  double.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML) * 2;
-    updateScores(score);
-  });
-});
-
-document.querySelectorAll(".dartboard .triple").forEach(triple => {
-  triple.addEventListener("click", event => {
-    const score = parseInt(event.target.innerHTML) * 3;
-    updateScores(score);
-  });
-});
-
-document.querySelector("#newGame").addEventListener("click", event => {
-  player1Score = 501;
-  player2Score = 501;
-  currentPlayer = PLAYER1;
-  document.getElementById("player1Score").innerHTML = player1Score;
-  document.getElementById("player2Score").innerHTML = player2Score;
-  document.getElementById("currentPlayer").innerHTML = currentPlayer;
-});
-
-</script>
-
-
-	<title>501 Dart Scoring</title>
-	<style>
-		/* Set up the dartboard */
-		.dartboard {
-			width: 400px;
-			height: 400px;
-			background-color: black;
-			border-radius: 50%;
-			position: relative;
-		}
-		.dartboard::before {
-			content: "";
-			display: block;
-			position: absolute;
-			top: 10px;
-			left: 10px;
-			right: 10px;
-			bottom: 10px;
-			border-radius: 50%;
-			background-color: #FFFFFF;
-		}
-		.dartboard::after {
-			content: "";
-			display: block;
-			position: absolute;
-			top: 50%;
-			left: 0;
-			right: 0;
-			margin-top: -2px;
-			height: 4px;
-			background-color: #000000;
-		}
-		.dartboard .number {
-			position: absolute;
-			font-size: 2em;
-			color: #FFFFFF;
-			font-weight: bold;
-			transform: translate(-50%, -50%);
-		}
-		.dartboard .inner {
-			width: 150px;
-			height: 150px;
-			border-radius: 50%;
-			background-color: #007F00;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 1;
-		}
-		.dartboard .outer {
-			width: 300px;
-			height: 300px;
-			border-radius: 50%;
-			background-color: #FFFFFF;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 1;
-		}
-		.dartboard .double {
-			width: 20px;
-			height: 20px;
-			border-radius: 50%;
-			background-color: #FFA500;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 2;
-		}
-		.dartboard .triple {
-			width: 10px;
-			height: 10px;
-			border-radius: 50%;
-			background-color: #FF0000;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 2;
-		}
-		.dartboard .center {
-			width: 10px;
-			height: 10px;
-			border-radius: 50%;
-			background-color: #FFFFFF;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			z-index: 2;
-		}
-		.dartboard .number:nth-child(1) {
-			top: 50%;
-			left: 50%;
-		}
-		.dartboard .number:nth-child(2) {
-			top: 15%;
-			left: 50%;
-		}
-		.dartboard .number:nth-child(3) {
-			top: 85%;
-			left: 50%;
-		}
-		.dartboard .number:nth-child(4) {
-			top: 50%;
-			left: 15%;
-		}
-		.dartboard .number:nth-child(5) {
-			top: 50%;
-			right: 15%;
-		}
-		.dartboard .number:nth-child(6) {
-			top: 50%;
-			right: 50%;
-		}
-		.dartboard .number:nth-child(7) {
-			top: 75%;
-			right: 35%;
-		}
-		.dartboard .number:nth-child(8) {
-			top: 75%;
-			right: 15%;
-		}
-
-		/* Set up the areas of the dartboard */
-		.dartboard .double {
-			position: absolute;
-			width: 40%;
-			height: 40%;
-			background-color: green;
-			opacity: 0.7;
-			border-radius: 50%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 32px;
-			color: white;
-			font-weight: bold;
-		}
-
-		.dartboard .triple {
-			position: absolute;
-			width: 25%;
-			height: 25%;
-			background-color: red;
-			opacity: 0.7;
-			border-radius: 50%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 28px;
-			color: white;
-			font-weight: bold;
-		}
-
-		.dartboard .inner {
-			position: absolute;
-			width: 10%;
-			height: 10%;
-			background-color: white;
-			opacity: 0.7;
-			border-radius: 50%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 24px;
-			color: black;
-			font-weight: bold;
-		}
-	</style>
-	
-	</head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="cleaned_styles.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&amp;family=Young+Serif&amp;display=swap" rel="stylesheet"/>
+<title>Media Player</title>
+</head>
 <body>
-	<h1>501 Dart Scoring</h1>
-<p>Player 1 score: <span id="player1Score">501</span></p>
-<p>Player 2 score: <span id="player2Score">501</span></p>
 
-<p>Player <span id="currentPlayer">1</span>, enter your score for this turn:</p>
-<input type="number" id="scoreInput">
-<button onclick="submitScore()">Submit</button>
 
-<div class="dartboard" onclick="markDart(event)">
-	<div class="number">20</div>
-	<div class="number">1</div>
-	<div class="number">18</div>
-	<div class="number">4</div>
-	<div class="number">13</div>
-	<div class="number">6</div>
-	<div class="number">10</div>
-	<div class="number">15</div>
-	<div class="number">2</div>
-	<div class="number">17</div>
-	<div class="number">3</div>
-	<div class="number">19</div>
-	<div class="number">7</div>
-	<div class="number">16</div>
-	<div class="number">8</div>
-	<div class="number">11</div>
-	<div class="number">14</div>
-	<div class="number">9</div>
-	<div class="double" data-value="20"></div>
-	<div class="double" data-value="1"></div>
-	<div class="double" data-value="18"></div>
-	<div class="double" data-value="4"></div>
-	<div class="double" data-value="13"></div>
-	<div class="double" data-value="6"></div>
-	<div class="double" data-value="10"></div>
-	<div class="double" data-value="15"></div>
-	<div class="double" data-value="2"></div>
-	<div class="double" data-value="17"></div>
-	<div class="double" data-value="3"></div>
-	<div class="double" data-value="19"></div>
-	<div class="double" data-value="7"></div>
-	<div class="double" data-value="16"></div>
-	<div class="double" data-value="8"></div>
-	<div class="double" data-value="11"></div>
-	<div class="double" data-value="14"></div>
-	<div class="double" data-value="9"></div>
-	<div class="inner-bullseye"></div>
-	<div class="outer-bullseye"></div>
+
+<div class="box" style="display:none">
+    <div class="grid-container" id="trackList">
+        <button onclick="changeTrack('Disclaimer.mp3'); updateImage('Disclaimer.png')">Introduction</button>
+        <button onclick="changeTrack('Train.mp3'); updateImage('Train.png')">Tunbridge Wells Train Station</button>
+        <button onclick="changeTrack('High-Street.mp3'); updateImage('High-Street.png')">The High Street</button>
+        <button onclick="changeTrack('Forum.mp3'); updateImage('Forum.png')">The Forum</button>
+        <button onclick="changeTrack('Chapel.mp3'); updateImage('Chapel.png')">Church Of King Charles the Martyr</button>
+        <button onclick="changeTrack('Spring.mp3'); updateImage('Spring.png')">Chalebeate Spring</button>
+        <button onclick="changeTrack('Pantiles.mp3'); updateImage('Pantiles.png')">The Pantiles</button>
+        <button onclick="changeTrack('Band-Stand.mp3'); updateImage('Band-Stand.png')">Jazz Stand</button>
+    </div>
 </div>
 
-<button id="newGame">New Game</button>
+
+
+
+<div class="image-container box">
+<img alt="Dynamic Image" id="dynamicImage" src="../Images/band-stand.png"/>
+</div>
+
+<div class="box box-route">
+ <span class="tour-text"> 
+	<div class="title" style="margin-bottom:-30px;">  Route Maps&nbsp&nbsp </div> <br/> 
+   <p class="tour-text-desc justify">  The audio tour tells you where to go but you might find it helpful to see the route in advance. The starting point is:  <br/> <a href="https://www.google.com/maps/dir//The+Great+Hall,+Mount+Pleasant+Rd,+Tunbridge+Wells+TN1+1QQ/@51.1302926,0.2639366,17z/data=!4m18!1m8!3m7!1s0x47df44310845dd75:0xca3b5d41d023e04b!2sThe+Great+Hall,+Mount+Pleasant+Rd,+Tunbridge+Wells+TN1+1QQ!3b1!8m2!3d51.1302926!4d0.2639366!16s%2Fg%2F1tzly79v!4m8!1m0!1m5!1m1!1s0x47df44310845dd75:0xca3b5d41d023e04b!2m2!1d0.2639366!2d51.1302926!3e3?entry=ttu"  target="_blank" class="no-style">The Great Hall, Mount Pleasant Rd, Tunbridge Wells TN1 1QQ (Opposite the train station)</a> <br/> <br/>
+   
+	<span class="Maps">
+<span class="start-button start-now-btn-grey">
+<a href="https://www.google.com/maps/dir/51.1302233,0.263371/51.1294835,0.2635699/51.1273883,0.260389/51.1268706,0.2594122/51.126875,0.2591668/The+Chalybeate+Spring,+The+Pantiles,+Tunbridge+Wells/Band+Stand,+The+Pantiles,+Royal+Tunbridge+Wells,+Tunbridge+Wells+TN2+5TE/@51.1272794,0.2612294,17z/data=!4m19!4m18!1m0!1m0!1m0!1m0!1m0!1m5!1m1!1s0x47df456e102fcab1:0xec104aae9ef1d62d!2m2!1d0.258696!2d51.1266707!1m5!1m1!1s0x47df459028d9e837:0x8b61a74af4fec1a3!2m2!1d0.2575458!2d51.1257606!3e2?entry=ttu" target="_blank" class="no-style">Google Maps Route &nbsp&nbsp</a>
+</span>
+		<span class="start-button start-now-btn-grey"> Apple maps Route&nbsp&nbsp</span>
+	</p>
+</div>
+
+
+
+<div class="box-timeline">
+<div class="timeline">
+<div class="progress"></div>
+
+<div class="event">
+    <div class="details">
+        <small>Press here to start</small> <br/>
+        Introduction <small>(Includes Disclaimer)</small>
+    </div>
+</div>
+<div class="event">
+    <div class="details">Tunbridge Wells Train Station<small></small></div>
+</div>
+<div class="event">
+    <div class="details">The High Street<small></small></div>
+</div>
+<div class="event">
+    <div class="details">The Forum <small> (Music Venue)</small></div>
+</div>
+<div class="event">
+    <div class="details">Church Of King Charles the Martyr</div>
+</div>
+<div class="event">
+    <div class="details">Chalebeate Spring</div>
+</div>
+<div class="event">
+    <div class="details">The Pantiles</div>
+</div>
+<div class="event">
+    <div class="details">Jazz Stand<small> (Includes concluding remarks)</small></div>
+</div>
+
+
+
+</div>
+</div>
+
+<div class="player-container-shadow">
+
+</div>
+
+
+<div class="player-container box">
+
+   <div class="scrubber box">
+      <div class="time-passed">--:--</div>
+      <input id="progressBar" max="100" min="0" type="range" value="0"/>
+      <div class="time-left">--:--</div>
+   </div>
+
+   <div class="buttons-container box">
+      <audio id="player" src="Train"></audio>
+      <button onclick="previousTrack()">⏪</button>
+      
+	  
+	  <button onclick="rewind()">
+         <div class="backward-icon"></div>
+      </button>
+	  
+      <button id="playPauseBtn" onclick="togglePlayPause()">▶️</button>
+	  
+	  
+	  <button onclick="forward()">
+         <div class="forward-icon"></div>
+      </button>
+
+	  
+      <button onclick="skip()">⏩</button>
+   </div>
+
+</div>
+
+
+<style>
+
+
+</style>
+
+</div>
+
+
+<script src="script_final.js"></script>
 </body>
 </html>
