@@ -12,19 +12,25 @@ let tracks = [
     "Band-Stand.mp3", 
 ];
 
+window.onload = function() {
+        updateImage('band-stand.png');
+    };
+
 let currentTrackIndex = 0; // Ensure the initial index is set to 0
 
 player.addEventListener("timeupdate", updateProgressBar, false);
+player.addEventListener("ended", skip);
 progressBar.addEventListener("input", seek);
 
 function togglePlayPause() {
     const playPauseBtn = document.getElementById("playPauseBtn");
     if (player.paused) {
         player.play();
-        playPauseBtn.textContent = "⏸️";
+        playPauseBtn.textContent = "||";
+        playPauseBtn.style.fontWeight = "bold";
     } else {
         player.pause();
-        playPauseBtn.textContent = "▶️";
+        playPauseBtn.textContent = "▶";
     }
 }
 
@@ -53,7 +59,7 @@ function previousTrack() {
     player.play();
     updateActiveTrack();
     updateTrackImage();
-    updateActiveEvent();
+    updateActiveEvent(); // Update the highlighted event
 }
 
 function updateActiveTrack() {
@@ -69,21 +75,21 @@ function updateActiveTrack() {
 
 function changeTrack(track) {
     player.src = track;
-    progressBar.value = 0;  
+    progressBar.value = 0;
     player.play();
     currentTrackIndex = tracks.indexOf(track);
     updateActiveTrack();
     updateTrackImage();
-    updateActiveEvent();
+    updateActiveEvent(); // Update the highlighted event
 }
 
 function updateProgressBar() {
     let percentage = Math.floor((100 / player.duration) * player.currentTime);
     progressBar.value = percentage;
 
-    const timePassed = document.querySelector('.time-passed');
-    const timeLeft = document.querySelector('.time-left');
-    
+    const timePassed = document.querySelector('.player-container .time-passed');
+    const timeLeft = document.querySelector('.player-container .time-left');
+
     timePassed.innerText = formatTime(player.currentTime);
     timeLeft.innerText = formatTime(player.duration - player.currentTime);
 }
