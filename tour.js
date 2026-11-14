@@ -95,21 +95,38 @@ function tellOtherTabs() { if (chan) chan.postMessage({ type: 'playing', from: t
 if (chan) chan.onmessage = function (e) { if (e.data && e.data.type === 'playing' && e.data.from !== tabId && playing()) { pause(); toast('Paused here because the tour is playing in another tab.'); } };
 
 /* Lock screen and headphone controls */
-function media() {
+/* Lock screen / Dynamic Island / Android notification.
+   iPhone ignores these details if they arrive before the sound has really started, or if they are
+   replaced too often, so: send them when a stop loads, again once it is actually playing (and a moment
+   later), and otherwise leave them alone. The audio element's title and the page title are fallbacks
+   that phones show when they skip the details. */
+var mediaKey = '', handlersSet = false;
+function media(force) {
+  var s = stop(), title = s.title, sub = 'Stop ' + (S.stop + 1) + ' of ' + N + ' · Tunbridge Wells audio tour';
+  try { au.title = title + ' – ' + sub; } catch (e) {}
+  if (view !== 'start' && view !== 'resume') document.title = title + ' · Tunbridge Wells Audio Tour';
   try {
     if (!('mediaSession' in navigator)) return;
-    var s = stop(), base = location.href.split('#')[0].replace(/[^/]*$/, '');
-    // The picture, title and subtitle phones show on the lock screen. Square sizes suit iPhone and Android.
-    navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: 'Stop ' + (S.stop + 1) + ' of ' + N + ' · Tunbridge Wells audio tour', album: 'Royal Tunbridge Wells',
-      artwork: [96, 256, 512].map(function (px) { return { src: base + 'media/art/' + s.img + '-' + px + '.jpg', sizes: px + 'x' + px, type: 'image/jpeg' }; }) });
-    navigator.mediaSession.playbackState = playing() ? 'playing' : 'paused';
-    var h = { play: toggle, pause: pause, seekbackward: function () { seekBy(-10); }, seekforward: function () { seekBy(10); },
+    var ms = navigator.mediaSession;
+    if (force || mediaKey !== s.id || !ms.metadata) {
+      mediaKey = s.id;
+      var art = [96, 192, 256, 384, 512].map(function (px) { return { src: new URL('media/art/' + s.img + '-' + px + '.jpg', location.href).href, sizes: px + 'x' + px, type: 'image/jpeg' }; });
+      ms.metadata = new MediaMetadata({ title: title, artist: sub, album: 'Royal Tunbridge Wells', artwork: art });
+    }
+    ms.playbackState = playing() ? 'playing' : 'paused';
+    if (handlersSet) return; handlersSet = true;
+    var h = { play: function () { if (!playing()) toggle(); }, pause: pause, seekbackward: function () { seekBy(-10); }, seekforward: function () { seekBy(10); },
       seekto: function (d) { if (d && d.seekTime != null) seekTo(d.seekTime); },
       previoustrack: function () { if (S.stop > 0) goStop(S.stop - 1, true); }, nexttrack: function () { if (S.stop < N - 1) goStop(S.stop + 1, true); } };
-    Object.keys(h).forEach(function (k) { try { navigator.mediaSession.setActionHandler(k, h[k]); } catch (e) {} });
+    Object.keys(h).forEach(function (k) { try { ms.setActionHandler(k, h[k]); } catch (e) {} });
   } catch (e) {}
 }
-function posState() { try { if (navigator.mediaSession && navigator.mediaSession.setPositionState && isFinite(au.duration)) navigator.mediaSession.setPositionState({ duration: au.duration, playbackRate: au.playbackRate, position: Math.min(au.currentTime, au.duration) }); } catch (e) {} }
+au.addEventListener('playing', function () { if (chiming) return; media(true); posState(true); setTimeout(function () { if (!chiming && playing()) { media(true); posState(true); } }, 700); });
+au.addEventListener('loadedmetadata', function () { if (!chiming) { media(); posState(true); } });
+au.addEventListener('ratechange', function () { if (!chiming) posState(true); });
+au.addEventListener('seeked', function () { if (!chiming) posState(true); });
+var posAt = 0;
+function posState(now) { if (!now && Date.now() - posAt < 5000) return; posAt = Date.now(); try { if (navigator.mediaSession && navigator.mediaSession.setPositionState && isFinite(au.duration)) navigator.mediaSession.setPositionState({ duration: au.duration, playbackRate: au.playbackRate, position: Math.min(au.currentTime, au.duration) }); } catch (e) {} }
 
 /* ---------- views ---------- */
 var leaveTimer = {}, ORDER = { start: 0, resume: 0, agree: 1, player: 2, between: 2, end: 3, map: -1 };
