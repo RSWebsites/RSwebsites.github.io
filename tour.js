@@ -35,9 +35,9 @@ function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false;
 var au = $('au'), view = 'start', loaded = -1, pendingSeek = null, wantPlay = false, mapReturn = 'player';
 function dur() { return (au.duration && isFinite(au.duration)) ? au.duration : stop().dur; }
 function pos() { return pendingSeek != null ? pendingSeek : (au.currentTime || 0); }
-function playing() { return !au.paused && !au.ended; }
+function playing() { return !chiming && !au.paused && !au.ended; }
 function load(at, autoplay) {
-  wantPlay = !!autoplay;
+  wantPlay = !!autoplay; chiming = false;
   if (loaded !== S.stop) { loaded = S.stop; pendingSeek = at || 0; au.src = stop().audio; au.load(); }
   else { try { au.currentTime = at || 0; } catch (e) {} }
   au.playbackRate = S.rate;
@@ -70,11 +70,11 @@ function seekTo(t) {
   S.pos = t; save(); progress(); dock();
 }
 function seekBy(d) { seekTo(pos() + d); }
-['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { icons(); media(); if (view === 'map') renderMap(); }); });
-au.addEventListener('play', function () { shrinkForReading(); });
-au.addEventListener('timeupdate', function () { S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
-au.addEventListener('ended', finishStop);
-au.addEventListener('error', function () { if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
+['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { if (chiming) return; icons(); media(); if (view === 'map') renderMap(); }); });
+au.addEventListener('play', function () { if (!chiming) shrinkForReading(); });
+au.addEventListener('timeupdate', function () { if (chiming) return; S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
+au.addEventListener('ended', function () { if (chiming) { chiming = false; icons(); return; } finishStop(); });
+au.addEventListener('error', function () { if (chiming) { chiming = false; return; } if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
 document.addEventListener('visibilitychange', save);
 window.addEventListener('pagehide', save);
 (function loop() { if (view === 'player') progress(); else if (view === 'map') dock(); requestAnimationFrame(loop); })();
@@ -137,11 +137,12 @@ function nextStop() {
   if (S.stop < N - 1) { renderBetween(); show('between'); } else show('end');
 }
 
-/* soft chime at the end of each stop */
-var actx;
-function warm() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {} }
+/* Soft chime at the end of each stop. It plays through the tour's own audio player
+   (not Web Audio), so Safari's privacy protection has nothing to flag. */
+var chiming = false;
+function warm() {}
 function chime() {
-  try { warm(); [[784, 0], [1175, 0.18]].forEach(function (n) { var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + n[1]; o.frequency.value = n[0]; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 1.2); }); } catch (e) {}
+  try { chiming = true; loaded = -1; pendingSeek = null; au.src = 'media/chime.mp3'; au.playbackRate = 1; var p = au.play(); if (p && p.catch) p.catch(function () { chiming = false; }); } catch (e) { chiming = false; }
 }
 
 /* ---------- player ---------- */

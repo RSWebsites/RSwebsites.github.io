@@ -2,9 +2,9 @@
    - The page, styles, script and images are saved on first visit.
    - Audio is saved stop by stop as you listen, or all at once from Settings.
    - Saved audio is served with byte ranges, which iPhones need to play and seek. */
-var SHELL = 'tw-shell-v3';
+var SHELL = 'tw-shell-v4';
 var AUDIO = 'tw-audio-v1';
-var FILES = ['./', 'index.html', 'tour.css', 'tour.js', 'map.js', 'transcripts.js', 'media/icon-192.png', 'media/icon-180.png'];
+var FILES = ['./', 'index.html', 'tour.css', 'tour.js', 'map.js', 'transcripts.js', 'media/icon-192.png', 'media/icon-180.png', 'media/chime.mp3', 'media/fonts/poppins-latin-300-normal.woff2', 'media/fonts/poppins-latin-400-normal.woff2', 'media/fonts/poppins-latin-500-normal.woff2', 'media/fonts/poppins-latin-600-normal.woff2', 'media/fonts/young-serif-latin-400-normal.woff2'];
 ['intro', 'station', 'high-street', 'forum', 'church', 'spring', 'pantiles', 'jazz-stand'].forEach(function (n) { FILES.push('media/' + n + '.jpg', 'media/' + n + '-thumb.jpg'); });
 
 self.addEventListener('install', function (e) {
@@ -37,7 +37,7 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== location.origin) return;
   var file = url.pathname.split('/').pop();
   if (/\.mp3$/i.test(file)) {
-    e.respondWith(caches.open(AUDIO).then(function (c) { return c.match(file); }).then(function (hit) { return hit ? ranged(req, hit) : fetch(req); }));
+    e.respondWith(caches.open(AUDIO).then(function (c) { return c.match(file); }).then(function (hit) { return hit || caches.match(req, { ignoreSearch: true }); }).then(function (hit) { return hit ? ranged(req, hit) : fetch(req); }));
     return;
   }
   // Page and assets: answer from the saved copy at once, refresh it in the background.
