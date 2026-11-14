@@ -17,7 +17,7 @@ var KEY = 'tw-tour-v1';
 var AUDIO_CACHE = 'tw-audio-v1';
 
 /* ---------- saved state (works without storage too) ---------- */
-var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false };
+var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false };
 try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && typeof o === 'object') Object.assign(S, o); } } catch (e) {}
 if (!(S.stop >= 0 && S.stop < N)) S.stop = 0;
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -110,7 +110,7 @@ function posState() { try { if (navigator.mediaSession && navigator.mediaSession
 /* ---------- views ---------- */
 function show(v) {
   view = v;
-  ['start', 'resume', 'player', 'between', 'map', 'end'].forEach(function (n) { $('v-' + n).hidden = n !== v; });
+  ['start', 'resume', 'player', 'between', 'agree', 'map', 'end'].forEach(function (n) { $('v-' + n).hidden = n !== v; });
   if (v === 'player') renderPlayer();
   if (v === 'map') renderMap();
   var h = v === 'player' ? 'stop-' + (S.stop + 1) : (v === 'map' ? 'map' : '');
@@ -121,15 +121,18 @@ function finishStop() {
   if (S.heard.indexOf(S.stop) < 0) S.heard.push(S.stop);
   S.pos = 0; save(); chime(); icons();
   if (S.stop === N - 1) { show('end'); return; }
+  if (S.stop === 0 && !S.agreed) { askAgree({ then: 'between' }); return; }
   renderBetween(); show('between');
 }
 function goStop(i, autoplay) {
   i = Math.max(0, Math.min(N - 1, i));
+  if (i > 0 && !S.agreed) { pause(); askAgree({ then: 'stop', i: i, autoplay: autoplay }); return; }
   if (i !== S.stop) { pause(); S.stop = i; S.pos = 0; }
   S.started = true; save(); show('player'); load(S.pos, autoplay);
 }
 function nextStop() {
   pause(); if (S.heard.indexOf(S.stop) < 0) S.heard.push(S.stop); save();
+  if (S.stop === 0 && !S.agreed) { askAgree({ then: 'between' }); return; }
   if (S.stop < N - 1) { renderBetween(); show('between'); } else show('end');
 }
 
@@ -246,6 +249,25 @@ function renderBetween() {
 $('imHere').addEventListener('click', function () { warm(); goStop(S.stop + 1, true); });
 $('replay').addEventListener('click', function () { warm(); S.pos = 0; goStop(S.stop, true); seekTo(0); });
 
+/* ---------- agreement (once, after the introduction) ---------- */
+var afterAgree = null;
+function askAgree(next) {
+  afterAgree = next; $('agreeBox').checked = false; $('agreeBtn').disabled = true;
+  $('agreeLabel').textContent = next.then === 'stop' && next.i > 1 ? 'Start the walk at stop ' + (next.i + 1) : 'Start the walk';
+  show('agree');
+}
+$('agreeBox').addEventListener('change', function () { $('agreeBtn').disabled = !$('agreeBox').checked; });
+$('agreeBtn').addEventListener('click', function () {
+  if (!$('agreeBox').checked) return;
+  S.agreed = true; S.agreedAt = new Date().toISOString(); S.started = true;
+  if (S.heard.indexOf(0) < 0) S.heard.push(0);
+  save(); warm();
+  var n = afterAgree || { then: 'between' }; afterAgree = null;
+  if (n.then === 'stop') { goStop(n.i, n.autoplay); return; }
+  S.stop = 0; S.pos = 0; save(); renderBetween(); show('between');
+});
+$('agreeReplay').addEventListener('click', function () { warm(); afterAgree = null; S.stop = 0; S.pos = 0; loaded = -1; save(); show('player'); load(0, true); });
+
 /* ---------- settings ---------- */
 function renderSpeed() { $('rate').value = S.rate; $('rateVal').textContent = S.rate + '×'; $('speedLabel').textContent = 'Speed ' + S.rate + '×'; }
 function renderSettings() { renderSpeed(); offlineStatus(); }
@@ -255,7 +277,7 @@ document.querySelector('[data-close]').addEventListener('click', function () { s
 $('s-settings').addEventListener('click', function (e) { if (e.target === $('s-settings')) sheet(false); });
 $('restartTour').addEventListener('click', function () { sheet(false); warm(); goStop(0, true); seekTo(0); });
 $('clearAll').addEventListener('click', function () {
-  pause(); S = { stop: 0, pos: 0, heard: [], rate: 1, started: false }; save(); loaded = -1;
+  pause(); S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false }; save(); loaded = -1;
   try { caches.delete(AUDIO_CACHE); } catch (e) {}
   sheet(false); show('start'); toast('Progress and downloads cleared.');
 });
@@ -312,7 +334,7 @@ $('shareBtn').addEventListener('click', function () {
 /* ---------- boot ---------- */
 function route_() {
   var h = (location.hash || '').replace('#', ''), m = /^stop-(\d+)$/.exec(h);
-  if (m) { var i = Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - 1)); if (i !== S.stop) { S.stop = i; S.pos = 0; } S.started = true; save(); show('player'); load(S.pos, false); return; }
+  if (m) { var i = Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - 1)); if (i > 0 && !S.agreed) { askAgree({ then: 'stop', i: i, autoplay: false }); return; } if (i !== S.stop) { S.stop = i; S.pos = 0; } S.started = true; save(); show('player'); load(S.pos, false); return; }
   if (h === 'map') { show('map'); return; }
   if (S.started && (S.pos > 1 || S.heard.length)) { renderResume(); show('resume'); return; }
   show('start');

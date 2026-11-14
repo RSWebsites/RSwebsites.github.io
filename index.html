@@ -137,6 +137,31 @@
   </div>
 </section>
 
+<!-- AGREE: shown once, after the introduction and before stop 2 -->
+<section class="view" id="v-agree" hidden>
+  <div class="scroll stack gap-l pad-top">
+    <div>
+      <p class="eyebrow">Before you set off</p>
+      <h1>Walk safely</h1>
+      <p class="muted mt-s">The rest of the tour is on the streets of Tunbridge Wells. Please read this once.</p>
+    </div>
+    <div class="card stack gap-m">
+      <p class="tick strong"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg><span>Look up when you cross a road, and only cross where it is safe. Pause the tour whenever you need to.</span></p>
+      <p class="tick strong"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V10l7-5 7 5v10"/></svg><span>Mind steps, kerbs and uneven paving, especially on the Pantiles.</span></p>
+      <p class="tick strong"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-1a6 6 0 0 1 12 0v1M17 11a3 3 0 1 0 0-6M21 21v-1a6 6 0 0 0-4-5.6"/></svg><span>Under 16? Please do the walk with a parent or guardian.</span></p>
+      <p class="tick strong"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 9.5a4 4 0 0 1 0 5"/></svg><span>Keep the volume low enough to hear traffic around you.</span></p>
+    </div>
+    <label class="agree-row" for="agreeBox">
+      <input type="checkbox" id="agreeBox">
+      <span>I have read this and I take care of my own safety on the walk.</span>
+    </label>
+  </div>
+  <div class="foot-actions stack gap-xs">
+    <button class="btn primary" id="agreeBtn" disabled><span id="agreeLabel">Start the walk</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <button class="link center-self" id="agreeReplay">Replay the introduction</button>
+  </div>
+</section>
+
 <!-- MAP & STOPS -->
 <section class="view" id="v-map" hidden>
   <div class="topbar">

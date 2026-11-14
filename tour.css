@@ -112,6 +112,11 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .twobtn .btn { padding: 0 10px; font-size: 15px; white-space: nowrap; }
 .grid2 .btn { font-size: 14.5px; padding: 0 10px; }
 
+/* Agreement */
+.agree-row { display: flex; gap: 12px; align-items: flex-start; background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 16px; cursor: pointer; font-weight: 500; }
+.agree-row input { width: 24px; height: 24px; flex: none; margin-top: 1px; accent-color: var(--accent); cursor: pointer; }
+.agree-row:has(input:checked) { border-color: var(--accent); }
+
 /* Map + timeline (timeline keeps the original site's style) */
 .mapbox { background: var(--card); border-radius: 20px; padding: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); }
 .mapbox svg { width: 100%; height: auto; display: block; stroke: none; }
