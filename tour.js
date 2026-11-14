@@ -1,0 +1,323 @@
+(function () {
+'use strict';
+
+/* ---------- the tour ---------- */
+var STOPS = [
+  { id: 'intro', short: 'Intro', title: 'Introduction', sub: 'Includes safety notes', audio: 'Disclaimer.mp3', img: 'intro', dur: 57, ll: [51.1302926, 0.2639366] },
+  { id: 'station', short: 'Station', title: 'Tunbridge Wells Station', sub: '', audio: 'Train.mp3', img: 'station', dur: 95, ll: [51.1302233, 0.263371] },
+  { id: 'high-street', short: 'High St', title: 'The High Street', sub: '', audio: 'High-Street.mp3', img: 'high-street', dur: 345, ll: [51.1294835, 0.2635699] },
+  { id: 'forum', short: 'Forum', title: 'The Forum', sub: 'Music venue', audio: 'Forum.mp3', img: 'forum', dur: 76, ll: [51.1273883, 0.260389] },
+  { id: 'church', short: 'Church', title: 'Church of King Charles the Martyr', sub: '', audio: 'Chapel.mp3', img: 'church', dur: 180, ll: [51.1268706, 0.2594122] },
+  { id: 'spring', short: 'Spring', title: 'The Chalybeate Spring', sub: '', audio: 'Spring.mp3', img: 'spring', dur: 136, ll: [51.1266707, 0.258696] },
+  { id: 'pantiles', short: 'Pantiles', title: 'The Pantiles', sub: '', audio: 'Pantiles.mp3', img: 'pantiles', dur: 115, ll: [51.126875, 0.2591668] },
+  { id: 'jazz-stand', short: 'Jazz Stand', title: 'The Jazz Stand', sub: 'Includes closing remarks', audio: 'Band-Stand.mp3', img: 'jazz-stand', dur: 167, ll: [51.1257606, 0.2575458] }
+];
+var N = STOPS.length;
+var KEY = 'tw-tour-v1';
+var AUDIO_CACHE = 'tw-audio-v1';
+
+/* ---------- saved state (works without storage too) ---------- */
+var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false };
+try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && typeof o === 'object') Object.assign(S, o); } } catch (e) {}
+if (!(S.stop >= 0 && S.stop < N)) S.stop = 0;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function $(id) { return document.getElementById(id); }
+function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function stop() { return STOPS[S.stop]; }
+function img(s, thumb) { return 'media/' + s.img + (thumb ? '-thumb' : '') + '.jpg'; }
+function gmaps(ll) { return 'https://www.google.com/maps/dir/?api=1&destination=' + ll[0] + ',' + ll[1] + '&travelmode=walking'; }
+function amaps(ll) { return 'https://maps.apple.com/?daddr=' + ll[0] + ',' + ll[1] + '&dirflg=w'; }
+var toastT;
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3800); }
+
+/* ---------- audio ---------- */
+var au = $('au'), view = 'start', loaded = -1, pendingSeek = null, wantPlay = false, mapReturn = 'player';
+function dur() { return (au.duration && isFinite(au.duration)) ? au.duration : stop().dur; }
+function pos() { return pendingSeek != null ? pendingSeek : (au.currentTime || 0); }
+function playing() { return !au.paused && !au.ended; }
+function load(at, autoplay) {
+  wantPlay = !!autoplay;
+  if (loaded !== S.stop) { loaded = S.stop; pendingSeek = at || 0; au.src = stop().audio; au.load(); }
+  else { try { au.currentTime = at || 0; } catch (e) {} }
+  au.playbackRate = S.rate;
+  if (autoplay) play();
+  icons(); progress();
+  keepForOffline(stop().audio);
+  if (STOPS[S.stop + 1]) keepForOffline(STOPS[S.stop + 1].audio);
+}
+au.addEventListener('loadedmetadata', function () {
+  if (pendingSeek != null) { try { au.currentTime = Math.min(pendingSeek, au.duration - 0.3); } catch (e) {} pendingSeek = null; }
+  au.playbackRate = S.rate; progress();
+});
+function play() {
+  au.playbackRate = S.rate;
+  var p = au.play();
+  if (p && p.catch) p.catch(function (e) { wantPlay = false; icons(); if (e && e.name === 'NotAllowedError') toast('Press play to start the audio.'); });
+  tellOtherTabs();
+}
+function pause() { au.pause(); }
+function toggle() {
+  if (playing()) { pause(); return; }
+  if (loaded !== S.stop) { load(S.pos, true); return; }
+  if (pos() >= dur() - 0.3) seekTo(0);
+  play();
+}
+function seekTo(t) {
+  t = Math.max(0, Math.min(dur() - 0.2, t));
+  if (pendingSeek != null || loaded !== S.stop) { pendingSeek = t; S.pos = t; }
+  else { try { au.currentTime = t; } catch (e) {} }
+  S.pos = t; save(); progress(); dock();
+}
+function seekBy(d) { seekTo(pos() + d); }
+['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { icons(); media(); if (view === 'map') renderMap(); }); });
+au.addEventListener('timeupdate', function () { S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
+au.addEventListener('ended', finishStop);
+au.addEventListener('error', function () { if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
+document.addEventListener('visibilitychange', save);
+window.addEventListener('pagehide', save);
+(function loop() { if (view === 'player') progress(); else if (view === 'map') dock(); requestAnimationFrame(loop); })();
+
+var PAUSE_I = '<rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/>', PLAY_I = '<path d="M7.5 4.5v15l12-7.5z"/>';
+function icons() {
+  var p = playing() || (wantPlay && pendingSeek != null);
+  $('playIcon').innerHTML = p ? PAUSE_I : PLAY_I; $('dockIcon').innerHTML = p ? PAUSE_I : PLAY_I;
+  $('play').setAttribute('aria-label', p ? 'Pause' : 'Play'); $('dockPlay').setAttribute('aria-label', p ? 'Pause' : 'Play');
+  dock();
+}
+
+/* One tab at a time: a new tab playing pauses any older one. */
+var chan = null; try { chan = new BroadcastChannel('tw-tour'); } catch (e) {}
+var tabId = Math.random().toString(36).slice(2);
+function tellOtherTabs() { if (chan) chan.postMessage({ type: 'playing', from: tabId }); }
+if (chan) chan.onmessage = function (e) { if (e.data && e.data.type === 'playing' && e.data.from !== tabId && playing()) { pause(); toast('Paused here because the tour is playing in another tab.'); } };
+
+/* Lock screen and headphone controls */
+function media() {
+  try {
+    if (!('mediaSession' in navigator)) return;
+    var s = stop(), base = location.href.split('#')[0].replace(/[^/]*$/, '');
+    navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: 'Stop ' + (S.stop + 1) + ' of ' + N + ' · Tunbridge Wells audio tour', album: 'Royal Tunbridge Wells',
+      artwork: [{ src: base + img(s), sizes: '900x900', type: 'image/jpeg' }] });
+    navigator.mediaSession.playbackState = playing() ? 'playing' : 'paused';
+    var h = { play: toggle, pause: pause, seekbackward: function () { seekBy(-10); }, seekforward: function () { seekBy(10); },
+      previoustrack: function () { if (S.stop > 0) goStop(S.stop - 1, true); }, nexttrack: function () { if (S.stop < N - 1) goStop(S.stop + 1, true); } };
+    Object.keys(h).forEach(function (k) { try { navigator.mediaSession.setActionHandler(k, h[k]); } catch (e) {} });
+  } catch (e) {}
+}
+function posState() { try { if (navigator.mediaSession && navigator.mediaSession.setPositionState && isFinite(au.duration)) navigator.mediaSession.setPositionState({ duration: au.duration, playbackRate: au.playbackRate, position: Math.min(au.currentTime, au.duration) }); } catch (e) {} }
+
+/* ---------- views ---------- */
+function show(v) {
+  view = v;
+  ['start', 'resume', 'player', 'between', 'map', 'end'].forEach(function (n) { $('v-' + n).hidden = n !== v; });
+  if (v === 'player') renderPlayer();
+  if (v === 'map') renderMap();
+  var h = v === 'player' ? 'stop-' + (S.stop + 1) : (v === 'map' ? 'map' : '');
+  try { history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : '')); } catch (e) {}
+}
+function sheet(on) { $('s-settings').hidden = !on; if (on) renderSettings(); }
+function finishStop() {
+  if (S.heard.indexOf(S.stop) < 0) S.heard.push(S.stop);
+  S.pos = 0; save(); chime(); icons();
+  if (S.stop === N - 1) { show('end'); return; }
+  renderBetween(); show('between');
+}
+function goStop(i, autoplay) {
+  i = Math.max(0, Math.min(N - 1, i));
+  if (i !== S.stop) { pause(); S.stop = i; S.pos = 0; }
+  S.started = true; save(); show('player'); load(S.pos, autoplay);
+}
+function nextStop() {
+  pause(); if (S.heard.indexOf(S.stop) < 0) S.heard.push(S.stop); save();
+  if (S.stop < N - 1) { renderBetween(); show('between'); } else show('end');
+}
+
+/* soft chime at the end of each stop */
+var actx;
+function warm() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {} }
+function chime() {
+  try { warm(); [[784, 0], [1175, 0.18]].forEach(function (n) { var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + n[1]; o.frequency.value = n[0]; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 1.2); }); } catch (e) {}
+}
+
+/* ---------- player ---------- */
+function renderPlayer() {
+  var s = stop(), n = STOPS[S.stop + 1];
+  $('stopLabel').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N;
+  $('photo').src = img(s); $('photo').alt = 'Illustration: ' + s.title;
+  $('stopTitle').textContent = s.title; $('stopSub').textContent = s.sub;
+  $('prev').disabled = S.stop === 0;
+  $('speedLabel').textContent = 'Speed ' + S.rate + '×';
+  $('dirBtn').href = gmaps(s.ll);
+  $('upNextText').textContent = n ? n.title : 'End of the tour';
+  progress();
+}
+function progress() {
+  if (view !== 'player') return;
+  var t = pos(), d = dur(), pct = Math.min(100, t / d * 100);
+  $('fill').style.width = pct + '%'; $('knob').style.left = pct + '%';
+  $('tNow').textContent = fmt(t); $('tDur').textContent = '-' + fmt(d - t);
+  var sk = $('seek'); sk.setAttribute('aria-valuemax', Math.round(d)); sk.setAttribute('aria-valuenow', Math.round(t)); sk.setAttribute('aria-valuetext', fmt(t) + ' of ' + fmt(d));
+}
+$('play').addEventListener('click', function () { warm(); toggle(); });
+$('back10').addEventListener('click', function () { seekBy(-10); });
+$('fwd10').addEventListener('click', function () { seekBy(10); });
+$('prev').addEventListener('click', function () { if (S.stop > 0) goStop(S.stop - 1, true); });
+$('next').addEventListener('click', nextStop);
+$('upNext').addEventListener('click', nextStop);
+$('speedBtn').addEventListener('click', function () { sheet(true); });
+(function () {
+  var el = $('seek'), drag = false;
+  function at(e) { var r = el.getBoundingClientRect(); seekTo(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur()); }
+  el.addEventListener('pointerdown', function (e) { drag = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} at(e); });
+  el.addEventListener('pointermove', function (e) { if (drag) at(e); });
+  el.addEventListener('pointerup', function () { drag = false; });
+  el.addEventListener('pointercancel', function () { drag = false; });
+  el.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') seekBy(-5); if (e.key === 'ArrowRight') seekBy(5); });
+})();
+
+/* ---------- map ---------- */
+function mapSVG(from, to) {
+  /* A route diagram, like a bus map: stops evenly spaced along the walk, in order. */
+  var W = 340, H = 196, x0 = 26, x1 = W - 26;
+  var pts = STOPS.map(function (s, i) { var f = i / (N - 1); return [x0 + f * (x1 - x0), 98 + 46 * Math.sin(f * Math.PI * 1.6 - 0.5)]; });
+  var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+  var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="The route: ' + STOPS.map(function (s) { return s.short; }).join(', ') + '">';
+  out += '<path d="' + line + '" fill="none" stroke="var(--line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+  if (to != null) out += '<path d="M' + pts[from][0].toFixed(1) + ' ' + pts[from][1].toFixed(1) + ' L' + pts[to][0].toFixed(1) + ' ' + pts[to][1].toFixed(1) + '" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>';
+  pts.forEach(function (p, i) {
+    var here = i === S.stop && to == null, nxt = i === to, cur = to != null && i === from, heard = S.heard.indexOf(i) >= 0, r = (here || nxt) ? 12 : 9.5;
+    var fill = (here || cur) ? 'var(--accent)' : (heard ? 'var(--teal)' : 'var(--card)');
+    var tc = (here || cur) ? 'var(--card)' : 'var(--ink)';
+    out += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + (nxt || here || cur ? 'var(--accent)' : 'var(--muted)') + '" stroke-width="' + (nxt ? 3 : 1.5) + '"/>';
+    out += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 3.8).toFixed(1) + '" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10.5" font-weight="600" fill="' + tc + '">' + (i + 1) + '</text>';
+    var above = i % 2 === 0, ly = above ? p[1] - r - 7 : p[1] + r + 15;
+    out += '<text x="' + p[0].toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="' + (here || nxt ? 600 : 400) + '" fill="' + (here || nxt ? 'var(--ink)' : 'var(--muted)') + '">' + STOPS[i].short + '</text>';
+  });
+  return out + '</svg>';
+}
+function renderMap() {
+  $('mapSvg').innerHTML = mapSVG(S.stop, null);
+  var tl = $('timeline'); tl.innerHTML = '<div class="tl-progress" id="tlp"></div>';
+  STOPS.forEach(function (s, i) {
+    var b = document.createElement('button');
+    b.className = 'event' + (i === S.stop ? ' here' : '') + (S.heard.indexOf(i) >= 0 ? ' heard' : '');
+    b.innerHTML = '<span class="det"><b></b><span></span></span><img alt="" src="' + img(s, true) + '">';
+    b.querySelector('b').textContent = (i + 1) + '. ' + s.title;
+    b.querySelector('.det span').textContent = (i === S.stop ? (playing() ? 'Playing now' : 'Current stop') : (S.heard.indexOf(i) >= 0 ? 'Heard · ' : '') + fmt(s.dur)) + (s.sub ? ' · ' + s.sub : '');
+    b.addEventListener('click', function () { if (i === S.stop) { show('player'); if (!playing()) { warm(); toggle(); } return; } warm(); goStop(i, true); });
+    tl.appendChild(b);
+  });
+  requestAnimationFrame(function () { var here = tl.querySelector('.event.here'); if (here) $('tlp').style.height = Math.max(0, here.offsetTop + here.offsetHeight / 2 - 18) + 'px'; });
+  dock();
+}
+function dock() {
+  if (view !== 'map') return;
+  var s = stop(), t = pos(), d = dur();
+  $('dockImg').src = img(s, true); $('dockTitle').textContent = s.title;
+  $('dockSub').textContent = 'Stop ' + (S.stop + 1) + ' · ' + (playing() ? 'playing' : 'paused') + ' · ' + fmt(t) + ' / ' + fmt(d);
+  $('dockBar').style.width = Math.min(100, t / d * 100) + '%';
+}
+$('dockOpen').addEventListener('click', function () { show('player'); });
+$('dockPlay').addEventListener('click', function () { warm(); toggle(); });
+$('dockBack').addEventListener('click', function () { seekBy(-10); });
+$('dockFwd').addEventListener('click', function () { seekBy(10); });
+$('mapBack').addEventListener('click', function () { show(mapReturn === 'map' ? 'player' : mapReturn); if (mapReturn === 'between') renderBetween(); });
+document.querySelectorAll('[data-go="map"]').forEach(function (b) { b.addEventListener('click', function () { mapReturn = view === 'resume' || view === 'end' ? 'player' : view; show('map'); }); });
+var gear = document.querySelector('#v-player [data-settings] svg').outerHTML;
+document.querySelectorAll('[data-settings]').forEach(function (b) { b.querySelector('svg').outerHTML = gear; b.addEventListener('click', function () { sheet(true); }); });
+var route = 'https://www.google.com/maps/dir/' + STOPS.map(function (s) { return s.ll[0] + ',' + s.ll[1]; }).join('/') + '/data=!4m2!4m1!3e2';
+$('routeGoogle').href = route;
+$('routeApple').href = 'https://maps.apple.com/?saddr=' + STOPS[0].ll.join(',') + '&daddr=' + STOPS[N - 1].ll.join(',') + '&dirflg=w';
+$('startGoogle').href = gmaps(STOPS[0].ll); $('startApple').href = amaps(STOPS[0].ll);
+
+/* ---------- between stops ---------- */
+function renderBetween() {
+  var n = STOPS[S.stop + 1];
+  $('betweenLabel').textContent = 'Stop ' + (S.stop + 1) + ' finished';
+  $('betweenEyebrow').textContent = 'Up next · stop ' + (S.stop + 2) + ' of ' + N;
+  $('betweenTitle').textContent = n.title;
+  $('betweenImg').src = img(n, true);
+  $('betweenMap').innerHTML = mapSVG(S.stop, S.stop + 1);
+  $('betweenGoogle').href = gmaps(n.ll); $('betweenApple').href = amaps(n.ll);
+  $('imHereLabel').textContent = 'I’m here · play ' + (S.stop + 2);
+  $('replayLabel').textContent = 'Replay ' + (S.stop + 1);
+}
+$('imHere').addEventListener('click', function () { warm(); goStop(S.stop + 1, true); });
+$('replay').addEventListener('click', function () { warm(); S.pos = 0; goStop(S.stop, true); seekTo(0); });
+
+/* ---------- settings ---------- */
+function renderSpeed() { $('rate').value = S.rate; $('rateVal').textContent = S.rate + '×'; $('speedLabel').textContent = 'Speed ' + S.rate + '×'; }
+function renderSettings() { renderSpeed(); offlineStatus(); }
+$('rate').addEventListener('input', function () { S.rate = parseFloat($('rate').value); au.playbackRate = S.rate; save(); renderSpeed(); });
+$('rateReset').addEventListener('click', function () { S.rate = 1; au.playbackRate = 1; save(); renderSpeed(); });
+document.querySelector('[data-close]').addEventListener('click', function () { sheet(false); });
+$('s-settings').addEventListener('click', function (e) { if (e.target === $('s-settings')) sheet(false); });
+$('restartTour').addEventListener('click', function () { sheet(false); warm(); goStop(0, true); seekTo(0); });
+$('clearAll').addEventListener('click', function () {
+  pause(); S = { stop: 0, pos: 0, heard: [], rate: 1, started: false }; save(); loaded = -1;
+  try { caches.delete(AUDIO_CACHE); } catch (e) {}
+  sheet(false); show('start'); toast('Progress and downloads cleared.');
+});
+
+/* ---------- offline: save audio to the phone ---------- */
+var hasCache = 'caches' in window;
+function keepForOffline(file) {
+  if (!hasCache || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
+  caches.open(AUDIO_CACHE).then(function (c) { return c.match(file).then(function (hit) { if (!hit) return fetch(file).then(function (r) { if (r.ok && r.status === 200) return c.put(file, r); }); }); }).catch(function () {});
+}
+function offlineStatus() {
+  if (!hasCache || !navigator.serviceWorker) { $('offlineText').textContent = 'This browser can’t save the tour for offline use. It will still play with signal.'; $('saveOffline').hidden = true; return; }
+  caches.open(AUDIO_CACHE).then(function (c) { return Promise.all(STOPS.map(function (s) { return c.match(s.audio); })); }).then(function (hits) {
+    var n = hits.filter(Boolean).length;
+    $('offlineText').textContent = n === N ? 'All 8 stops are saved on this phone. The tour plays with no signal.' : (n ? n + ' of 8 stops saved. ' : '') + 'Save all 8 stops to this phone (about 21 MB) so the tour plays with no signal. Best done on wifi.';
+    $('saveOffline').hidden = n === N;
+  }).catch(function () {});
+}
+$('saveOffline').addEventListener('click', function () {
+  var btn = $('saveOffline'); btn.disabled = true; btn.textContent = 'Saving…'; $('dlBar').hidden = false;
+  var done = 0;
+  caches.open(AUDIO_CACHE).then(function (c) {
+    return STOPS.reduce(function (p, s) {
+      return p.then(function () { return c.match(s.audio); }).then(function (hit) { return hit || fetch(s.audio).then(function (r) { if (!r.ok) throw new Error('load'); return c.put(s.audio, r); }); })
+        .then(function () { done++; $('dlFill').style.width = (done / N * 100) + '%'; });
+    }, Promise.resolve());
+  }).then(function () { toast('Saved. The whole tour now plays without signal.'); })
+    .catch(function () { toast('Saving stopped. Check your connection and try again.'); })
+    .then(function () { btn.disabled = false; btn.textContent = 'Save the tour to this phone'; $('dlBar').hidden = true; offlineStatus(); });
+});
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+
+/* ---------- start / resume / end ---------- */
+$('startBtn').addEventListener('click', function () { warm(); S.started = true; S.stop = 0; S.pos = 0; save(); goStop(0, true); });
+function renderResume() {
+  var s = stop();
+  $('resumeImg').src = img(s, true); $('resumeTitle').textContent = s.title;
+  $('resumeWhere').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N + (S.pos > 1 ? ' · at ' + fmt(S.pos) : '');
+  $('resumeGoLabel').textContent = S.pos > 1 ? 'Carry on from ' + fmt(S.pos) : 'Play stop ' + (S.stop + 1);
+}
+$('resumeGo').addEventListener('click', function () { warm(); show('player'); load(S.pos, true); });
+$('resumeCard').addEventListener('click', function () { $('resumeGo').click(); });
+$('resumeRestart').addEventListener('click', function () { warm(); S.pos = 0; show('player'); load(0, true); });
+$('resumeFresh').addEventListener('click', function () { warm(); S.heard = []; goStop(0, true); seekTo(0); });
+$('againBtn').addEventListener('click', function () { warm(); S.heard = []; goStop(0, true); seekTo(0); });
+$('shareBtn').addEventListener('click', function () {
+  var url = location.href.split('#')[0];
+  if (navigator.share) { navigator.share({ title: 'Royal Tunbridge Wells audio tour', text: 'A free audio walking tour of Tunbridge Wells.', url: url }).catch(function () {}); return; }
+  try { navigator.clipboard.writeText(url).then(function () { toast('Link copied.'); }, function () { toast('Copy the link from the address bar.'); }); } catch (e) { toast('Copy the link from the address bar.'); }
+});
+
+/* ---------- boot ---------- */
+function route_() {
+  var h = (location.hash || '').replace('#', ''), m = /^stop-(\d+)$/.exec(h);
+  if (m) { var i = Math.max(0, Math.min(N - 1, parseInt(m[1], 10) - 1)); if (i !== S.stop) { S.stop = i; S.pos = 0; } S.started = true; save(); show('player'); load(S.pos, false); return; }
+  if (h === 'map') { show('map'); return; }
+  if (S.started && (S.pos > 1 || S.heard.length)) { renderResume(); show('resume'); return; }
+  show('start');
+}
+window.addEventListener('hashchange', function () { var h = location.hash.replace('#', ''); if (h !== (view === 'player' ? 'stop-' + (S.stop + 1) : view)) route_(); });
+window.__tour = { S: function () { return S; }, au: au, view: function () { return view; } };
+route_();
+})();
