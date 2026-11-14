@@ -180,8 +180,9 @@ function chime() {
 
 /* ---------- player ---------- */
 function words(s) { var t = window.TRANSCRIPTS && window.TRANSCRIPTS[s.audio.replace('.mp3', '')]; return t && t.length ? t : null; }
-var follow = true, followAt = 0, lastLine = -2, H0 = 220, HMIN = 64;
-function heroBase() { var h = window.innerHeight; return Math.round(Math.max(110, Math.min(260, h * (h < 700 ? 0.22 : 0.3)))); }
+var follow = true, followAt = 0, lastLine = -2, H0 = 220, HMIN = 72;
+// the big picture: as tall as the screen allows while leaving room for the words (taller than before)
+function heroBase() { var h = window.innerHeight, w = $('hero').clientWidth || 340; return Math.round(Math.max(120, Math.min(360, w * 0.82, h * (h < 700 ? 0.3 : 0.37)))); }
 function renderPlayer() {
   var s = stop(), n = STOPS[S.stop + 1], w = words(s);
   $('stopLabel').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N;
@@ -260,6 +261,8 @@ function progress(force) {
   if (!follow && Date.now() - followAt > 8000) { follow = true; $('follow').hidden = true; }
   if (follow && started && kids[i]) {
     var r = $('reader'), target = kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3;
+    // while the picture is big, leave the words still; once they need to move, the picture shrinks first
+    if (!heroSmall) { if (target > 36 && !heroPinned) { lastLine = key; setHero(true); return; } target = 0; }
     // once the small picture shows the title, scroll the repeated heading out of view
     var floor = heroSmall ? kids[0].offsetTop - r.offsetTop - 12 : 0;
     r.scrollTo({ top: Math.max(floor, target), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });

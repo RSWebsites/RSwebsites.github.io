@@ -97,8 +97,9 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 /* Player: picture shrinks as the words move on */
 .hero { flex: none; position: relative; z-index: 2; display: flex; align-items: center; margin-top: 8px; }
 .heroimg { position: absolute; left: 0; top: 0; width: 100%; background: var(--teal-soft); cursor: pointer; transform-origin: 50% 50%; clip-path: inset(0px 0px round 20px); -webkit-clip-path: inset(0px 0px round 20px); transition: transform 0.55s var(--ease), clip-path 0.55s var(--ease), -webkit-clip-path 0.55s var(--ease); will-change: transform; backface-visibility: hidden; }
-.heroimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.herotitle { flex: 1; min-width: 0; margin-left: 76px; opacity: 0; transform: translateX(-10px); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
+.heroimg img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; display: block; }
+.hero { margin-bottom: 4px; }
+.herotitle { flex: 1; min-width: 0; margin-left: 86px; opacity: 0; transform: translateX(-10px); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
 .hero.small .herotitle { opacity: 1; transform: none; transition: opacity 0.4s ease 0.18s, transform 0.5s var(--ease) 0.12s; }
 .readwrap { transition: transform 0.55s var(--ease); will-change: transform; }
 .panel { position: relative; z-index: 3; }
@@ -111,7 +112,7 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .herotitle b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-family: var(--serif); font-weight: 400; font-size: clamp(14px, 4.6vw, 19px); line-height: 1.15; }
 .herotitle span { font-size: 12px; color: var(--muted); }
 .readwrap { flex: 1 1 auto; min-height: 70px; position: relative; display: flex; flex-direction: column; }
-.reader { flex: 1 1 auto; min-height: 70px; overflow-y: auto; overflow-x: hidden; padding-top: 10px; -webkit-mask-image: linear-gradient(transparent, #000 18px, #000 85%, transparent); mask-image: linear-gradient(transparent, #000 18px, #000 85%, transparent); }
+.reader { flex: 1 1 auto; min-height: 70px; overflow-y: auto; overflow-x: hidden; padding-top: 14px; -webkit-mask-image: linear-gradient(transparent, #000 12px, #000 85%, transparent); mask-image: linear-gradient(transparent, #000 12px, #000 85%, transparent); }
 .lines { display: flex; flex-direction: column; gap: 2px; padding: 10px 0 40vh; }
 .lines button { transition-timing-function: ease; text-align: left; border-radius: 10px; padding: 6px 10px; margin: 0; line-height: 1.45; color: var(--muted); opacity: 0.75; transition: color 0.45s ease, background-color 0.45s ease, opacity 0.45s ease; }
 .lines button.past { opacity: 1; }
@@ -167,7 +168,13 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .twmap .ml { font-family: var(--sans); font-size: 10px; fill: var(--m-label); text-anchor: middle; paint-order: stroke; stroke: var(--m-bg); stroke-width: 3px; stroke-linejoin: round; }
 .twmap .ml.park { font-style: italic; fill: var(--m-park-ink); font-size: 11.5px; font-weight: 500; stroke: var(--m-park); }
 .twmap .ml.street { font-size: 10px; font-weight: 600; }
-.twmap .mn { font-family: var(--sans); font-size: 11px; font-weight: 700; text-anchor: middle; }
+.twmap .mn { font-family: var(--sans); font-size: 11.5px; font-weight: 700; text-anchor: middle; }
+@keyframes mpulse { 0% { opacity: 0.9; transform: scale(0.8); } 100% { opacity: 0; transform: scale(1.9); } }
+.twmap .mpulse { transform-box: fill-box; transform-origin: center; animation: mpulse 1.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .twmap .mpulse { animation: none; opacity: 0.4; } }
+.twmap .ml.stopname { font-size: 11px; font-weight: 600; fill: var(--m-ink); stroke-width: 3.5px; }
+.twmap .ml.stopname.here { fill: var(--accent); font-weight: 700; }
+.twmap .ml.street { font-size: 10.5px; }
 .twmap .mtag { font-family: var(--sans); font-size: 10px; font-weight: 600; fill: var(--card); text-anchor: middle; }
 .guide p { font-size: 14.5px; }
 .guide svg { width: 20px; height: 20px; }

@@ -12,6 +12,7 @@ var PATH = [
 ];
 // Where each stop sits on PATH.
 var AT = [0, 1, 4, 9, 11, 13, 14, 15];
+var NAMES = ['Start', 'Station', 'High Street', 'The Forum', 'Church', 'Spring', 'Pantiles', 'Jazz Stand'];
 var ICON = ['hall', 'train', 'shop', 'music', 'church', 'spring', 'columns', 'bandstand'];
 var GUIDE = [
   'Cross over to the station entrance, opposite the Great Hall.',
@@ -110,7 +111,7 @@ function draw(o) {
   BUILDINGS.forEach(function (b) {
     var sx = W / 2 + (b.c[0] - cx) * sc, sy = H / 2 + (b.c[1] - cy) * sc;
     if (sx < -20 || sx > W + 20 || sy < -20 || sy > H + 20) return;
-    out += '<rect x="' + (-b.w * sc / 2).toFixed(1) + '" y="' + (-b.h * sc / 2).toFixed(1) + '" width="' + (b.w * sc).toFixed(1) + '" height="' + (b.h * sc).toFixed(1) + '" rx="' + Math.max(1, 2 * sc).toFixed(1) + '" fill="' + b.col + '" opacity="0.85" transform="translate(' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ') rotate(' + b.ang.toFixed(1) + ')"/>';
+    out += '<rect x="' + (-b.w * sc / 2).toFixed(1) + '" y="' + (-b.h * sc / 2).toFixed(1) + '" width="' + (b.w * sc).toFixed(1) + '" height="' + (b.h * sc).toFixed(1) + '" rx="' + Math.max(1, 2 * sc).toFixed(1) + '" fill="' + b.col + '" opacity="0.5" transform="translate(' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ') rotate(' + b.ang.toFixed(1) + ')"/>';
   });
   // railway
   out += '<path d="' + line(RAIL) + '" stroke="var(--m-rail)" stroke-width="4" fill="none"/><path d="' + line(RAIL) + '" stroke="var(--m-bg)" stroke-width="2" stroke-dasharray="5 5" fill="none"/>';
@@ -118,19 +119,30 @@ function draw(o) {
   STREETS.forEach(function (s) { out += '<path d="' + line(s.pts) + '" stroke="var(--m-edge)" stroke-width="' + (s.walk ? 13 : 11) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'; });
   STREETS.forEach(function (s) { out += '<path d="' + line(s.pts) + '" stroke="' + (s.walk ? 'var(--m-walk)' : 'var(--m-road)') + '" stroke-width="' + (s.walk ? 10 : 8) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'; });
   // the whole route, dotted
-  out += '<path class="mroute" d="' + line(PATH) + '" stroke="var(--m-route)" stroke-width="3" stroke-dasharray="0.1 7" stroke-linecap="round" fill="none" opacity="0.8"/>';
+  function arrows(list, gap, first, col, size) {
+    var sp = list.map(P), acc = 0, next = first, s = '';
+    for (var k = 0; k < sp.length - 1; k++) {
+      var a = sp[k], b = sp[k + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), deg = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+      while (next <= acc + L) { var f = (next - acc) / L, x = a[0] + (b[0] - a[0]) * f, y = a[1] + (b[1] - a[1]) * f;
+        s += '<path d="M-' + size + ' -' + (size * 1.3).toFixed(1) + ' L' + (size * 0.6).toFixed(1) + ' 0 L-' + size + ' ' + (size * 1.3).toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + deg.toFixed(1) + ')"/>'; next += gap; }
+      acc += L;
+    }
+    return s;
+  }
+  if (!zoom) {
+    var cut = AT[Math.max(0, Math.min(AT.length - 1, o.current || 0))], done = PATH.slice(0, cut + 1), ahead = PATH.slice(cut);
+    out += '<g class="mroute">';
+    out += '<path d="' + line(PATH) + '" stroke="var(--card)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85"/>';
+    out += '<path d="' + line(ahead) + '" stroke="var(--m-route)" stroke-width="4" stroke-dasharray="7 6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+    if (done.length > 1) out += '<path d="' + line(done) + '" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+    out += '</g>';
+  } else out += '<path class="mroute" d="' + line(PATH) + '" stroke="var(--m-route)" stroke-width="3" stroke-dasharray="0.1 7" stroke-linecap="round" fill="none" opacity="0.6"/>';
   if (zoom) {
     var leg = PATH.slice(AT[o.from], AT[o.to] + 1);
     out += '<path d="' + line(leg) + '" stroke="var(--card)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>';
     out += '<path d="' + line(leg) + '" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
     // arrows showing which way to walk
-    var sp = leg.map(P), acc = 0, next = 26;
-    for (var k = 0; k < sp.length - 1; k++) {
-      var a = sp[k], b = sp[k + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), deg = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
-      while (next <= acc + L) { var f = (next - acc) / L, x = a[0] + (b[0] - a[0]) * f, y = a[1] + (b[1] - a[1]) * f;
-        out += '<path d="M-3.5 -4.5 L2 0 L-3.5 4.5" fill="none" stroke="var(--card)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') rotate(' + deg.toFixed(1) + ')"/>'; next += 30; }
-      acc += L;
-    }
+    out += arrows(leg, 30, 26, 'var(--card)', 3.5);
   }
   // street names (kept upright)
   STREETS.forEach(function (s) {
@@ -148,8 +160,16 @@ function draw(o) {
   function clampY(y) { return Math.max(14, Math.min(H - 14, y)); }
   var tags = [], perp = [0, -1];
   if (zoom) { var dv = away(pt, pf); perp = [dv[1], -dv[0]]; if (perp[1] > 0) perp = [-perp[0], -perp[1]]; }
+  var PP = AT.map(function (pi) { return P(PATH[pi]); }), MIN = zoom ? 26 : 24;
+  for (var q = PP.length - 2; q >= 0; q--) {
+    var d = Math.hypot(PP[q][0] - PP[q + 1][0], PP[q][1] - PP[q + 1][1]);
+    if (d < MIN) { var u = d < 0.5 ? [-0.7, -0.7] : [(PP[q][0] - PP[q + 1][0]) / d, (PP[q][1] - PP[q + 1][1]) / d], real = PP[q];
+      PP[q] = [PP[q + 1][0] + u[0] * MIN, PP[q + 1][1] + u[1] * MIN];
+      out += '<path d="M' + real[0].toFixed(1) + ' ' + real[1].toFixed(1) + 'L' + PP[q][0].toFixed(1) + ' ' + PP[q][1].toFixed(1) + '" stroke="var(--m-ink)" stroke-width="1.2" opacity="0.5"/><circle cx="' + real[0].toFixed(1) + '" cy="' + real[1].toFixed(1) + '" r="2.5" fill="var(--m-ink)"/>'; }
+  }
+  var names = [];
   AT.forEach(function (pi, i) {
-    var p = P(PATH[pi]);
+    var p = PP[i];
     if (p[0] < -20 || p[0] > W + 20 || p[1] < -20 || p[1] > H + 20) return;
     var here = zoom ? i === o.from : i === o.current, dest = zoom && i === o.to, heard = (o.heard || []).indexOf(i) >= 0;
     var ix, iy;
@@ -157,16 +177,25 @@ function draw(o) {
     else { var side = (i % 2 ? 1 : -1); ix = p[0]; iy = p[1] + side * (zoom ? 34 : 36); }
     if (!zoom && i === 0) { ix = p[0] - 30; iy = p[1] - 30; }
     if (!zoom && i === 1) { ix = p[0] + 6; iy = p[1] + 38; }
-    out += icon(ICON[i], Math.max(16, Math.min(W - 16, ix)), Math.max(16, Math.min(H - 16, iy)), p[0], p[1]);
-    var r = here || dest ? 12 : (zoom ? 9.5 : 9);
+    ix = Math.max(16, Math.min(W - 16, ix)); iy = Math.max(16, Math.min(H - 16, iy));
+    // the close-up only needs the two stops you are walking between: no picture badges there
+    if (!zoom) out += icon(ICON[i], ix, iy, p[0], p[1]);
+    if (!zoom) names.push({ x: ix, y: iy < p[1] ? iy - 19 : iy + 26, t: NAMES[i], here: here });
+    var r = here || dest ? 12.5 : (zoom ? 8 : 10.5);
+    if (dest) out += '<circle class="mpulse" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="13" fill="none" stroke="var(--accent)" stroke-width="2"/>';
     if (here) out += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="17" fill="var(--accent)" opacity="0.18"/>';
     out += '<g class="mpin" style="--i:' + i + '">';
     out += '<circle data-stop="' + i + '" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + r + '" fill="' + (here ? 'var(--accent)' : dest ? 'var(--m-dest)' : heard ? 'var(--teal)' : 'var(--card)') + '" stroke="' + (here || dest ? 'var(--accent)' : 'var(--m-ink)') + '" stroke-width="' + (dest ? 2.5 : 1.5) + '"/>';
     out += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 3.6).toFixed(1) + '" class="mn" fill="' + (here ? 'var(--card)' : 'var(--m-ink)') + '">' + (i + 1) + '</text></g>';
     if (zoom && (here || dest)) {
-      var tag = here ? 'You are here' : 'Stop ' + (i + 1), tw = tag.length * 6.4 + 18, sg = here ? 1 : -1;
-      tags.push({ x: clampX(p[0] + perp[0] * sg * 28, tw), y: clampY(p[1] + perp[1] * sg * 28), w: tw, tag: tag, here: here });
+      var tag = here ? 'You are here' : 'Next: ' + NAMES[i], tw = tag.length * 6.2 + 20, sg = here ? 1 : -1;
+      tags.push({ x: clampX(p[0] + perp[0] * sg * 30, tw), y: clampY(p[1] + perp[1] * sg * 30), w: tw, tag: tag, here: here, px: p[0], py: p[1] });
     }
+  });
+  names.forEach(function (n) { out += '<text x="' + n.x.toFixed(1) + '" y="' + Math.max(10, Math.min(H - 5, n.y)).toFixed(1) + '" class="ml stopname' + (n.here ? ' here' : '') + '">' + esc(n.t) + '</text>'; });
+  tags.forEach(function (t) {
+    var dx = t.x - t.px, dy = t.y - t.py, d = Math.hypot(dx, dy) || 1, sx = t.px + dx / d * 13, sy = t.py + dy / d * 13, ex = t.x - dx / d * 9, ey = t.y - dy / d * 9;
+    if (d > 24) out += '<path d="M' + sx.toFixed(1) + ' ' + sy.toFixed(1) + 'L' + ex.toFixed(1) + ' ' + ey.toFixed(1) + '" stroke="' + (t.here ? 'var(--accent)' : 'var(--m-ink)') + '" stroke-width="1.5"/>';
   });
   tags.forEach(function (t) { out += '<g transform="translate(' + t.x.toFixed(1) + ' ' + t.y.toFixed(1) + ')"><rect x="' + (-t.w / 2).toFixed(1) + '" y="-10" width="' + t.w.toFixed(1) + '" height="20" rx="10" fill="' + (t.here ? 'var(--accent)' : 'var(--m-ink)') + '"/><text y="4" class="mtag">' + t.tag + '</text></g>'; });
   // compass
