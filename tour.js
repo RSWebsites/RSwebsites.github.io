@@ -312,6 +312,35 @@ $('agreeReplay').addEventListener('click', function () { warm(); afterAgree = nu
 /* ---------- settings ---------- */
 function renderSpeed() { $('rate').value = S.rate; $('rateVal').textContent = S.rate + '×'; }
 function renderSettings() { renderSpeed(); offlineStatus(); }
+/* ---------- credits & licences (data in credits.js) ---------- */
+function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function crRow(n, head, lines) { return '<div class="cr"><span class="crn" aria-hidden="true">' + n + '</span><div><b>' + head + '</b>' + lines.map(function (l) { return '<p>' + l + '</p>'; }).join('') + '</div></div>'; }
+function renderCredits() {
+  var C = window.CREDITS || { stops: [], fonts: [] }, html = '';
+  STOPS.forEach(function (s, i) {
+    var c = C.stops.filter(function (x) { return x.stop === i + 1; })[0] || {}, lines = [];
+    if (c.none) lines.push(esc(c.none));
+    (c.items || []).forEach(function (it) {
+      var name = it.title ? '“' + esc(it.title) + '”' : '';
+      if (name && it.link) name = '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">' + name + '</a>';
+      if (it.by) name += (name ? ' by ' : 'By ') + esc(it.by);
+      var src = [it.source, it.licence].filter(Boolean).map(esc).join(' · ');
+      lines.push('<span class="crwhat">' + esc(it.what) + '</span>');
+      if (name) lines.push(name);
+      if (src) lines.push(src);
+      if (!it.source && !it.licence) lines.push('<span class="crtodo">' + (name ? 'Source and licence to be added' : 'Track details to be added') + '</span>');
+    });
+    html += crRow(i + 1, esc(s.title), lines);
+  });
+  if (C.chime) html += crRow('♪', 'End-of-stop chime', [esc(C.chime)]);
+  $('crMusic').innerHTML = html;
+  $('crFonts').innerHTML = (C.fonts || []).map(function (f) { return crRow('Aa', esc(f.name), [esc(f.by), esc(f.licence)]); }).join('');
+}
+function credits(on) { $('s-credits').hidden = !on; if (on) { renderCredits(); $('s-credits').querySelector('.sheet').scrollTop = 0; } }
+$('openCredits').addEventListener('click', function () { sheet(false); credits(true); });
+$('crBack').addEventListener('click', function () { credits(false); sheet(true); });
+$('crClose').addEventListener('click', function () { credits(false); });
+$('s-credits').addEventListener('click', function (e) { if (e.target === $('s-credits')) credits(false); });
 $('rate').addEventListener('input', function () { S.rate = parseFloat($('rate').value); au.playbackRate = S.rate; save(); renderSpeed(); });
 $('rateReset').addEventListener('click', function () { S.rate = 1; au.playbackRate = 1; save(); renderSpeed(); });
 document.querySelector('[data-close]').addEventListener('click', function () { sheet(false); });

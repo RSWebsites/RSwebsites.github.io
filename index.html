@@ -252,6 +252,11 @@
     </section>
 
     <section class="stack gap-xs">
+      <span class="label mb-s">About</span>
+      <button class="rowlink" id="openCredits"><span><b>Credits &amp; licences</b><small>Music and sound used at each stop, where it came from, and font licences</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    </section>
+
+    <section class="stack gap-xs">
       <button class="btn" id="restartTour">Start the tour again from stop 1</button>
       <button class="link center-self" id="clearAll">Clear saved progress and downloads</button>
     </section>
@@ -260,6 +265,39 @@
 
 <div class="toast" id="toast" role="status" hidden></div>
 </div>
+<div class="scrim" id="s-credits" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="crHead">
+    <span class="grab"></span>
+    <div class="row between">
+      <button class="iconbtn" id="crBack" aria-label="Back to settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <h2 id="crHead">Credits &amp; licences</h2>
+      <button class="iconbtn" id="crClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <p class="muted small">This tour is free. Here is what it is made from and who made it.</p>
+
+    <section class="stack gap-s">
+      <span class="label">Music &amp; sound, stop by stop</span>
+      <div class="card crlist" id="crMusic"></div>
+    </section>
+
+    <section class="stack gap-s">
+      <span class="label">Fonts</span>
+      <div class="card crlist" id="crFonts"></div>
+      <a class="link" href="media/fonts/LICENSE.txt" target="_blank" rel="noopener">Read the full font licence</a>
+    </section>
+
+    <section class="stack gap-s">
+      <span class="label">Also on this page</span>
+      <div class="card crlist">
+        <div class="cr"><span class="crn" aria-hidden="true">✦</span><div><b>Map</b><p>Drawn for this tour. Walking directions open in Google Maps or Apple Maps.</p></div></div>
+        <div class="cr"><span class="crn" aria-hidden="true">✦</span><div><b>Read-along words</b><p>Typed out from the recordings with Whisper, an open-source speech recogniser (MIT licence), then checked by hand.</p></div></div>
+        <div class="cr"><span class="crn" aria-hidden="true">✦</span><div><b>Privacy</b><p>No ads, no tracking and no cookies. Your place in the tour is saved only on this phone.</p></div></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="credits.js"></script>
 <script src="map.js"></script>
 <script src="transcripts.js"></script>
 <script src="tour.js"></script>
