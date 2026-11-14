@@ -2,7 +2,7 @@
    - The page, styles, script and images are saved on first visit.
    - Audio is saved stop by stop as you listen, or all at once from Settings.
    - Saved audio is served with byte ranges, which iPhones need to play and seek. */
-var SHELL = 'tw-shell-v2';
+var SHELL = 'tw-shell-v3';
 var AUDIO = 'tw-audio-v1';
 var FILES = ['./', 'index.html', 'tour.css', 'tour.js', 'map.js', 'transcripts.js', 'media/icon-192.png', 'media/icon-180.png'];
 ['intro', 'station', 'high-street', 'forum', 'church', 'spring', 'pantiles', 'jazz-stand'].forEach(function (n) { FILES.push('media/' + n + '.jpg', 'media/' + n + '-thumb.jpg'); });
