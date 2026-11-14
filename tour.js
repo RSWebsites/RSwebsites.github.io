@@ -23,6 +23,8 @@ if (!(S.stop >= 0 && S.stop < N)) S.stop = 0;
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
 function $(id) { return document.getElementById(id); }
+var _w = {};
+function put(id, prop, val) { var k = id + '|' + prop; if (_w[k] === val) return; _w[k] = val; var e = $(id); if (prop === 'text') e.textContent = val; else if (prop.charAt(0) === '@') e.setAttribute(prop.slice(1), val); else e.style[prop] = val; }
 function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function stop() { return STOPS[S.stop]; }
 function img(s, thumb) { return 'media/' + s.img + (thumb ? '-thumb' : '') + '.jpg'; }
@@ -172,19 +174,36 @@ function renderPlayer() {
   H0 = heroBase(); $('reader').scrollTop = 0; lastLine = -2; follow = true; $('follow').hidden = true;
   setHero(!!w && (S.pos > 0.5 || playing()), true); progress(true);
 }
-/* The picture is either full size or a small thumbnail, and moves between the two in one smooth
-   animation. It no longer resizes while the words scroll, which made both jump. */
+/* The picture is either full size or a small square thumbnail. It moves between the two with a
+   transform and a clip (drawn by the phone's graphics chip, no re-layout), and the words below slide
+   up with it in the same movement. */
 var heroSmall = false;
 function setHero(small, instant) {
-  var hero = $('hero'), im = $('heroImg'), full = hero.clientWidth;
+  var hero = $('hero'), im = $('heroImg'), rw = hero.nextElementSibling, W = hero.clientWidth || 1;
+  var still = instant || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var before = rw.getBoundingClientRect().top;
   heroSmall = small;
-  if (instant) hero.classList.add('noanim');
-  im.style.height = (small ? HMIN : H0) + 'px';
-  im.style.width = (small ? HMIN : full) + 'px';
+  if (still) hero.classList.add('noanim');
+  hero.style.height = (small ? HMIN : H0) + 'px';
+  im.style.height = H0 + 'px';
+  if (small) {
+    var side = Math.min(W, H0), s = HMIN / side, ix = (W - side) / 2, iy = (H0 - side) / 2;
+    im.style.transform = 'translate(' + (HMIN / 2 - W / 2).toFixed(1) + 'px, ' + (HMIN / 2 - H0 / 2).toFixed(1) + 'px) scale(' + s.toFixed(4) + ')';
+    im.style.clipPath = im.style.webkitClipPath = 'inset(' + iy.toFixed(1) + 'px ' + ix.toFixed(1) + 'px round ' + (14 / s).toFixed(1) + 'px)';
+  } else {
+    im.style.transform = 'translate(0px, 0px) scale(1)';
+    im.style.clipPath = im.style.webkitClipPath = 'inset(0px 0px round 20px)';
+  }
   hero.classList.toggle('small', small);
   $('tools').classList.toggle('on', small && !!words(stop()));
-  if (!instant && words(stop())) { lastLine = -2; setTimeout(function () { progress(true); }, 60); }
-  if (instant) { void hero.offsetWidth; hero.classList.remove('noanim'); }
+  if (still) { void hero.offsetWidth; hero.classList.remove('noanim'); rw.style.transform = ''; return; }
+  var delta = before - rw.getBoundingClientRect().top;
+  if (Math.abs(delta) > 0.5) {
+    rw.style.transition = 'none'; rw.style.transform = 'translateY(' + delta.toFixed(1) + 'px)';
+    void rw.offsetWidth;
+    rw.style.transition = ''; rw.style.transform = 'translateY(0px)';
+  }
+  if (words(stop())) { lastLine = -2; progress(true); }
 }
 $('heroImg').addEventListener('click', function () { if (words(stop())) setHero(!heroSmall); });
 function userScrolled() { follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
@@ -195,9 +214,10 @@ function lineAt(t, w) { var i = 0; for (var k = 0; k < w.length; k++) if (t >= w
 function progress(force) {
   if (view !== 'player') return;
   var t = pos(), d = dur(), pct = Math.min(100, t / d * 100);
-  $('fill').style.width = pct + '%'; $('knob').style.left = pct + '%';
-  $('tNow').textContent = fmt(t); $('tDur').textContent = '-' + fmt(d - t);
-  var sk = $('seek'); sk.setAttribute('aria-valuemax', Math.round(d)); sk.setAttribute('aria-valuenow', Math.round(t)); sk.setAttribute('aria-valuetext', fmt(t) + ' of ' + fmt(d));
+  // the bar and knob slide with transforms, which the phone can draw without re-laying out the page
+  put('fill', 'transform', 'translateX(' + (pct - 100).toFixed(2) + '%)'); put('knob', 'transform', 'translateX(' + pct.toFixed(2) + '%)');
+  put('tNow', 'text', fmt(t)); put('tDur', 'text', '-' + fmt(d - t));
+  put('seek', '@aria-valuemax', String(Math.round(d))); put('seek', '@aria-valuenow', String(Math.round(t))); put('seek', '@aria-valuetext', fmt(t) + ' of ' + fmt(d));
   var w = words(stop()); if (!w) return;
   var started = t > 0.05 || playing(), i = lineAt(t, w), key = started ? i : -1;
   if (key === lastLine && !force) return;
@@ -257,9 +277,9 @@ function renderMap() {
 function dock() {
   if (view !== 'map') return;
   var s = stop(), t = pos(), d = dur();
-  $('dockImg').src = img(s, true); $('dockTitle').textContent = s.title;
-  $('dockSub').textContent = 'Stop ' + (S.stop + 1) + ' · ' + (playing() ? 'playing' : 'paused') + ' · ' + fmt(t) + ' / ' + fmt(d);
-  $('dockBar').style.width = Math.min(100, t / d * 100) + '%';
+  put('dockImg', '@src', img(s, true)); put('dockTitle', 'text', s.title);
+  put('dockSub', 'text', 'Stop ' + (S.stop + 1) + ' · ' + (playing() ? 'playing' : 'paused') + ' · ' + fmt(t) + ' / ' + fmt(d));
+  put('dockBar', 'transform', 'translateX(' + (Math.min(100, t / d * 100) - 100).toFixed(2) + '%)');
 }
 $('dockOpen').addEventListener('click', function () { show('player'); });
 $('dockPlay').addEventListener('click', function () { warm(); toggle(); });
