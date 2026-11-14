@@ -3,7 +3,7 @@
 
 /* ---------- the tour ---------- */
 var STOPS = [
-  { id: 'intro', short: 'Intro', title: 'Introduction', sub: 'Includes safety notes', audio: 'Disclaimer.mp3', img: 'intro', dur: 57, ll: [51.1302926, 0.2639366] },
+  { id: 'intro', short: 'Intro', title: 'Introduction', sub: 'Includes safety notes', audio: 'Disclaimer.mp3', img: 'intro', dur: 57, ll: [51.13030, 0.26366] },
   { id: 'station', short: 'Station', title: 'Tunbridge Wells Station', sub: '', audio: 'Train.mp3', img: 'station', dur: 95, ll: [51.1302233, 0.263371] },
   { id: 'high-street', short: 'High St', title: 'The High Street', sub: '', audio: 'High-Street.mp3', img: 'high-street', dur: 345, ll: [51.1294835, 0.2635699] },
   { id: 'forum', short: 'Forum', title: 'The Forum', sub: 'Music venue', audio: 'Forum.mp3', img: 'forum', dur: 76, ll: [51.1273883, 0.260389] },
@@ -71,6 +71,7 @@ function seekTo(t) {
 }
 function seekBy(d) { seekTo(pos() + d); }
 ['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { icons(); media(); if (view === 'map') renderMap(); }); });
+au.addEventListener('play', function () { shrinkForReading(); });
 au.addEventListener('timeupdate', function () { S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
 au.addEventListener('ended', finishStop);
 au.addEventListener('error', function () { if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
@@ -154,8 +155,7 @@ function renderPlayer() {
   $('stopTitle').textContent = s.title; $('stopSub').textContent = s.sub;
   $('heroTitleText').textContent = s.title; $('heroSubText').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N;
   $('prev').disabled = S.stop === 0;
-  $('speedLabel').textContent = 'Speed ' + S.rate + '×';
-  $('dirBtn').href = gmaps(s.ll);
+  $('dirBtn').href = gmaps((n || s).ll); $('dirBtn').setAttribute('aria-label', 'Walking directions to ' + (n || s).title);
   $('upNextText').textContent = n ? n.title : 'End of the tour';
   var box = $('lines'); box.innerHTML = '';
   if (w) w.forEach(function (l, i) {
@@ -171,12 +171,15 @@ function renderPlayer() {
 function layoutHero() {
   if (view !== 'player') return;
   var st = $('reader').scrollTop, h = Math.max(HMIN, H0 - st), f = (H0 - h) / (H0 - HMIN);
-  var full = $('hero').clientWidth, w = f < 0.001 ? full : Math.round(full - (full - HMIN * 1.3) * f);
+  var full = $('hero').clientWidth, w = f < 0.001 ? full : Math.round(full - (full - HMIN) * f);
   $('heroImg').style.height = h + 'px'; $('heroImg').style.width = w + 'px';
   $('heroImg').style.borderRadius = Math.round(20 - 8 * f) + 'px';
   $('hero').style.gap = Math.round(12 * f) + 'px';
   $('heroTitle').style.opacity = f > 0.55 ? (f - 0.55) / 0.45 : 0;
+  $('tools').classList.toggle('on', f > 0.6 && !!words(stop()));
 }
+function collapseGap() { return Math.max(0, H0 - HMIN); }
+function shrinkForReading() { if (view === 'player' && words(stop()) && $('reader').scrollTop < collapseGap() - 2) $('reader').scrollTo({ top: collapseGap(), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
 $('reader').addEventListener('scroll', function () { requestAnimationFrame(layoutHero); }, { passive: true });
 function userScrolled() { follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
 $('reader').addEventListener('touchmove', userScrolled, { passive: true });
@@ -196,7 +199,7 @@ function progress(force) {
   for (var k = 0; k < kids.length; k++) kids[k].className = !started ? '' : (k === i ? 'now' : (k < i ? 'past' : ''));
   if (!follow && Date.now() - followAt > 8000) { follow = true; $('follow').hidden = true; }
   if (follow && started && kids[i]) {
-    var r = $('reader'), target = i === 0 ? 0 : kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3;
+    var r = $('reader'), target = Math.max(collapseGap(), kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3);
     r.scrollTo({ top: Math.max(0, target), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
   lastLine = key;
@@ -211,7 +214,6 @@ $('fwd10').addEventListener('click', function () { seekBy(10); });
 $('prev').addEventListener('click', function () { if (S.stop > 0) goStop(S.stop - 1, true); });
 $('next').addEventListener('click', nextStop);
 $('upNext').addEventListener('click', nextStop);
-$('speedBtn').addEventListener('click', function () { sheet(true); });
 (function () {
   var el = $('seek'), drag = false;
   function at(e) { var r = el.getBoundingClientRect(); seekTo(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur()); }
@@ -230,6 +232,7 @@ function mapSVG(from, to) {
 }
 function renderMap() {
   $('mapSvg').innerHTML = mapSVG(S.stop, null);
+  requestAnimationFrame(function () { var box = $('mapSvg'), pin = box.querySelector('[data-stop="' + S.stop + '"]'), svg = box.querySelector('svg'); if (!pin || !svg) return; var k = svg.getBoundingClientRect().width / 640; box.scrollLeft = Math.max(0, pin.cx.baseVal.value * k - box.clientWidth / 2); });
   var tl = $('timeline'); tl.innerHTML = '<div class="tl-progress" id="tlp"></div>';
   STOPS.forEach(function (s, i) {
     var b = document.createElement('button');
@@ -299,7 +302,7 @@ $('agreeBtn').addEventListener('click', function () {
 $('agreeReplay').addEventListener('click', function () { warm(); afterAgree = null; S.stop = 0; S.pos = 0; loaded = -1; save(); show('player'); load(0, true); });
 
 /* ---------- settings ---------- */
-function renderSpeed() { $('rate').value = S.rate; $('rateVal').textContent = S.rate + '×'; $('speedLabel').textContent = 'Speed ' + S.rate + '×'; }
+function renderSpeed() { $('rate').value = S.rate; $('rateVal').textContent = S.rate + '×'; }
 function renderSettings() { renderSpeed(); offlineStatus(); }
 $('rate').addEventListener('input', function () { S.rate = parseFloat($('rate').value); au.playbackRate = S.rate; save(); renderSpeed(); });
 $('rateReset').addEventListener('click', function () { S.rate = 1; au.playbackRate = 1; save(); renderSpeed(); });
