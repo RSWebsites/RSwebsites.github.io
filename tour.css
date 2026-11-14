@@ -46,7 +46,7 @@ svg.accent { stroke: var(--accent); }
 .app { height: 100%; height: 100dvh; width: 100%; position: relative; overflow: hidden; }
 /* Full width page; content kept to a readable column on big screens. */
 :root { --gutter: max(16px, calc((100vw - 720px) / 2)); }
-.view { position: absolute; inset: 0; display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(var(--gutter), env(safe-area-inset-left, 0px)); }
+.view { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; padding: calc(8px + env(safe-area-inset-top, 0px)) max(var(--gutter), env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(var(--gutter), env(safe-area-inset-left, 0px)); }
 .scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
 h1, h2 { font-family: var(--serif); font-weight: 400; line-height: 1.1; text-wrap: balance; }
@@ -208,10 +208,20 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 
 /* Settings sheet */
 .scrim { position: absolute; inset: 0; z-index: 20; background: var(--scrim); display: flex; flex-direction: column; justify-content: flex-end; }
-.sheet { background: var(--bg); border-radius: 22px 22px 0 0; max-height: 92%; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 10px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); animation: up 0.42s var(--ease); }
-@keyframes up { from { transform: translateY(70px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet { background: var(--bg); border-radius: 22px 22px 0 0; max-height: 92%; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 10px max(18px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); animation: up 0.5s cubic-bezier(0.32, 0.72, 0, 1); }
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
 .scrim:not([hidden]) { animation: scrimin 0.3s ease; }
 @keyframes scrimin { from { background: transparent; } }
+.scrim .sheet > * { animation: rise 0.45s var(--ease) both; }
+.scrim .sheet > :nth-child(2) { animation-delay: 0.08s; } .scrim .sheet > :nth-child(3) { animation-delay: 0.12s; } .scrim .sheet > :nth-child(4) { animation-delay: 0.16s; }
+.scrim .sheet > :nth-child(5) { animation-delay: 0.2s; } .scrim .sheet > :nth-child(n+6) { animation-delay: 0.24s; }
+.scrim.closing { animation: scrimout 0.2s ease-in forwards; pointer-events: none; }
+.scrim.closing .sheet { animation: down 0.2s ease-in forwards; }
+@keyframes scrimout { to { background: transparent; } }
+@keyframes down { to { transform: translateY(100%); } }
+.scrim.push, .scrim.pop { animation: none; }
+.scrim.push .sheet { animation: inr 0.4s var(--ease); }
+.scrim.pop .sheet { animation: inl 0.4s var(--ease); }
 .grab { align-self: center; width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
 .iconbtn { width: 44px; height: 44px; border-radius: 50%; background: var(--card); display: inline-flex; align-items: center; justify-content: center; }
 .range { width: 100%; height: 40px; accent-color: var(--accent); }
@@ -243,7 +253,47 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .faq p { padding: 0 0 12px; font-size: 14px; color: var(--muted); }
 
 .toast { position: absolute; left: 16px; right: 16px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 40; background: var(--btn); color: var(--on-btn); border-radius: 16px; padding: 14px 16px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); }
-.view.enter { animation: viewin 0.36s var(--ease); }
-@keyframes viewin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .view.enter { animation: none; } .heroimg, .hero, .herotitle, .lines button, .tools, .readwrap { transition: none !important; } .scrim:not([hidden]) { animation: none; } }
+.view.enter { animation: viewin 0.38s var(--ease); }
+.view.enter-l { animation: inl 0.42s var(--ease); }
+.view.enter-r { animation: inr 0.42s var(--ease); }
+.view.leave { animation: outfade 0.22s ease-in forwards; pointer-events: none; z-index: 0; }
+.view.leave-l { animation: outl 0.26s ease-in forwards; pointer-events: none; z-index: 0; }
+.view.leave-r { animation: outr 0.26s ease-in forwards; pointer-events: none; z-index: 0; }
+.view:not(.leave):not(.leave-l):not(.leave-r) { z-index: 1; }
+@keyframes viewin { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes inl { from { opacity: 0; transform: translateX(-28%); } to { opacity: 1; transform: none; } }
+@keyframes inr { from { opacity: 0; transform: translateX(28%); } to { opacity: 1; transform: none; } }
+@keyframes outfade { to { opacity: 0; transform: scale(0.98); } }
+@keyframes outl { to { opacity: 0; transform: translateX(-18%); } }
+@keyframes outr { to { opacity: 0; transform: translateX(18%); } }
+/* pieces arrive one after another (30–60 ms apart), then sit still */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(0.3); } 70% { opacity: 1; transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes settle { from { transform: scale(1.08); } to { transform: none; } }
+.intro .event { animation: rise 0.45s var(--ease) both; animation-delay: calc(var(--i) * 40ms + 140ms); }
+.intro .twmap .mroute { animation: draw 1s var(--ease) both 0.15s; }
+.intro .twmap .mpin { transform-box: fill-box; transform-origin: center; animation: pop 0.5s var(--ease) both; animation-delay: calc(var(--i) * 55ms + 250ms); }
+.intro .nextpic img { animation: settle 1.4s var(--ease) both; }
+.intro .nextcap { animation: rise 0.5s var(--ease) both 0.12s; }
+#v-between.intro .scroll > :nth-child(n+3) { animation: rise 0.45s var(--ease) both; }
+#v-between.intro .scroll > :nth-child(3) { animation-delay: 0.16s; } #v-between.intro .scroll > :nth-child(4) { animation-delay: 0.22s; } #v-between.intro .scroll > :nth-child(5) { animation-delay: 0.28s; }
+#v-between.intro .twobtn { animation: rise 0.45s var(--ease) both 0.3s; }
+.nextpic { position: relative; flex: none; height: min(30vh, 240px); border-radius: 22px; overflow: hidden; background: var(--teal-soft); isolation: isolate; }
+#v-between .navbtn[data-settings] .txt { display: none; }
+#v-between .navbtn[data-settings] { padding: 0 12px; }
+.nextpic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nextcap { position: absolute; left: 0; right: 0; bottom: 0; padding: 34px 16px 14px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.62)); color: #fff; }
+.nextcap .eyebrow { color: #fff; opacity: 0.9; }
+.nextcap h2 { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3); }
+/* press feedback: everything you can tap gives a little as you press it */
+.btn, .navbtn, .pillbtn, .iconbtn, .ctl .ring, .tbtn, .dplay, .dbtn, .rowlink, .event .det, .follow { transition: transform 0.18s var(--ease), background-color 0.2s ease, box-shadow 0.2s ease; }
+.btn:active, .navbtn:active, .pillbtn:active, .iconbtn:active, .ctl:active .ring, .tbtn:active, .dplay:active, .dbtn:active, .rowlink:active, .event:active .det { transform: scale(0.95); transition-duration: 0.08s; }
+.follow:active { transform: translateX(-50%) scale(0.95); }
+.navbtn svg { transition: transform 0.5s var(--ease); }
+.navbtn[data-go="map"]:active svg { transform: rotate(-10deg) scale(1.15); }
+.navbtn[data-settings].spin svg { transform: rotate(120deg); }
+.navbtn[data-settings]:active svg { transform: rotate(45deg); }
+.ctl.play:active .ring { transform: scale(0.92); }
+@media (prefers-reduced-motion: reduce) { .view.enter { animation: none; } .heroimg, .hero, .herotitle, .lines button, .tools, .readwrap { transition: none !important; } .scrim:not([hidden]), .scrim .sheet, .scrim .sheet > *, .view.enter-l, .view.enter-r, .intro *, .intro .event, .intro .nextcap, #v-between.intro .twobtn { animation: none !important; } .btn:active, .navbtn:active, .iconbtn:active, .rowlink:active, .ctl:active .ring { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } .tl-progress, .event .det { transition: none; } }

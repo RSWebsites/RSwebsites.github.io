@@ -73,7 +73,6 @@ function seekTo(t) {
 }
 function seekBy(d) { seekTo(pos() + d); }
 ['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { if (chiming) return; icons(); media(); if (view === 'map') renderMap(); }); });
-au.addEventListener('play', function () { if (!chiming && view === 'player' && words(stop()) && !heroSmall) setHero(true); });
 au.addEventListener('timeupdate', function () { if (chiming) return; S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
 au.addEventListener('ended', function () { if (chiming) { chiming = false; icons(); return; } finishStop(); });
 au.addEventListener('error', function () { if (chiming) { chiming = false; return; } if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
@@ -113,16 +112,45 @@ function media() {
 function posState() { try { if (navigator.mediaSession && navigator.mediaSession.setPositionState && isFinite(au.duration)) navigator.mediaSession.setPositionState({ duration: au.duration, playbackRate: au.playbackRate, position: Math.min(au.currentTime, au.duration) }); } catch (e) {} }
 
 /* ---------- views ---------- */
+var leaveTimer = {}, ORDER = { start: 0, resume: 0, agree: 1, player: 2, between: 2, end: 3, map: -1 };
+function still() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function show(v) {
+  var old = view, from = $('v-' + old);
   view = v;
-  ['start', 'resume', 'player', 'between', 'agree', 'map', 'end'].forEach(function (n) { $('v-' + n).hidden = n !== v; });
-  var el = $('v-' + v); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
+  // the map comes in from the left (its button is top left); going back slides the other way
+  var dir = v === 'map' ? 'l' : (old === 'map' ? 'r' : (ORDER[v] < ORDER[old] ? 'r' : 'up'));
+  ['start', 'resume', 'player', 'between', 'agree', 'map', 'end'].forEach(function (n) {
+    var el = $('v-' + n);
+    clearTimeout(leaveTimer[n]); el.classList.remove('leave', 'leave-l', 'leave-r');
+    if (n === v) { el.hidden = false; return; }
+    if (n === old && !el.hidden && !still()) {
+      el.classList.add('leave', dir === 'l' ? 'leave-r' : dir === 'r' ? 'leave-l' : 'leave');
+      leaveTimer[n] = setTimeout(function () { el.hidden = true; el.classList.remove('leave', 'leave-l', 'leave-r'); }, 260);
+    } else el.hidden = true;
+  });
+  var el = $('v-' + v);
+  el.classList.remove('enter', 'enter-l', 'enter-r', 'intro'); void el.offsetWidth;
+  el.classList.add(dir === 'l' ? 'enter-l' : dir === 'r' ? 'enter-r' : 'enter', 'intro');
+  clearTimeout(leaveTimer['intro' + v]); leaveTimer['intro' + v] = setTimeout(function () { el.classList.remove('intro'); }, 1400);
   if (v === 'player') renderPlayer();
   if (v === 'map') renderMap();
   var h = v === 'player' ? 'stop-' + (S.stop + 1) : (v === 'map' ? 'map' : '');
   try { history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h : '')); } catch (e) {}
 }
-function sheet(on) { $('s-settings').hidden = !on; if (on) renderSettings(); }
+/* Sheets (Settings, Credits) slide up on an iOS-style curve and slide away a little faster. */
+function openScrim(id, how) {
+  var sc = $(id); clearTimeout(leaveTimer[id]);
+  sc.classList.remove('closing', 'push', 'pop'); if (how) sc.classList.add(how);
+  sc.hidden = false;
+}
+function closeScrim(id, now) {
+  var sc = $(id); if (sc.hidden) return;
+  if (now || still()) { sc.hidden = true; return; }
+  sc.classList.add('closing');
+  leaveTimer[id] = setTimeout(function () { sc.hidden = true; sc.classList.remove('closing'); }, 200);
+}
+function gearSpin(on) { document.querySelectorAll('[data-settings]').forEach(function (b) { b.classList.toggle('spin', on); }); }
+function sheet(on, how) { if (on) { openScrim('s-settings', how); renderSettings(); } else closeScrim('s-settings', how === 'now'); gearSpin(on); }
 function finishStop() {
   if (S.heard.indexOf(S.stop) < 0) S.heard.push(S.stop);
   S.pos = 0; save(); chime(); icons();
@@ -172,12 +200,18 @@ function renderPlayer() {
   else box.innerHTML = '<p class="none">The words for this stop are not available yet.</p>';
   $('smaller').hidden = $('bigger').hidden = !w;
   H0 = heroBase(); $('reader').scrollTop = 0; lastLine = -2; follow = true; $('follow').hidden = true;
-  setHero(!!w && (S.pos > 0.5 || playing()), true); progress(true);
+  heroPinned = false; setHero(false, true); progress(true);
 }
 /* The picture is either full size or a small square thumbnail. It moves between the two with a
    transform and a clip (drawn by the phone's graphics chip, no re-layout), and the words below slide
    up with it in the same movement. */
-var heroSmall = false;
+var heroSmall = false, heroPinned = false, userAt = 0;
+$('reader').addEventListener('scroll', function () {
+  if (view !== 'player' || !words(stop())) return;
+  var y = $('reader').scrollTop, byHand = Date.now() - userAt < 900;
+  if (!heroSmall && y > 36 && (!heroPinned || byHand)) { heroPinned = false; setHero(true); }
+  else if (heroSmall && byHand && y <= 0) setHero(false);
+}, { passive: true });
 function setHero(small, instant) {
   var hero = $('hero'), im = $('heroImg'), rw = hero.nextElementSibling, W = hero.clientWidth || 1;
   var still = instant || matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -203,10 +237,10 @@ function setHero(small, instant) {
     void rw.offsetWidth;
     rw.style.transition = ''; rw.style.transform = 'translateY(0px)';
   }
-  if (words(stop())) { lastLine = -2; progress(true); }
+  if (words(stop()) && small) { lastLine = -2; progress(true); }
 }
-$('heroImg').addEventListener('click', function () { if (words(stop())) setHero(!heroSmall); });
-function userScrolled() { follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
+$('heroImg').addEventListener('click', function () { if (!words(stop())) return; heroPinned = heroSmall; setHero(!heroSmall); });
+function userScrolled() { userAt = Date.now(); follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
 $('reader').addEventListener('touchmove', userScrolled, { passive: true });
 $('reader').addEventListener('wheel', userScrolled, { passive: true });
 $('follow').addEventListener('click', function () { follow = true; $('follow').hidden = true; lastLine = -2; progress(true); });
@@ -264,7 +298,7 @@ function renderMap() {
   var tl = $('timeline'); tl.innerHTML = '<div class="tl-progress" id="tlp"></div>';
   STOPS.forEach(function (s, i) {
     var b = document.createElement('button');
-    b.className = 'event' + (i === S.stop ? ' here' : '') + (S.heard.indexOf(i) >= 0 ? ' heard' : '');
+    b.className = 'event' + (i === S.stop ? ' here' : '') + (S.heard.indexOf(i) >= 0 ? ' heard' : ''); b.style.setProperty('--i', i);
     b.innerHTML = '<span class="det"><b></b><span></span></span><img alt="" src="' + img(s, true) + '">';
     b.querySelector('b').textContent = (i + 1) + '. ' + s.title;
     b.querySelector('.det span').textContent = (i === S.stop ? (playing() ? 'Playing now' : 'Current stop') : (S.heard.indexOf(i) >= 0 ? 'Heard · ' : '') + fmt(s.dur)) + (s.sub ? ' · ' + s.sub : '');
@@ -300,7 +334,7 @@ function renderBetween() {
   $('betweenLabel').textContent = 'Stop ' + (S.stop + 1) + ' finished';
   $('betweenEyebrow').textContent = 'Up next · stop ' + (S.stop + 2) + ' of ' + N;
   $('betweenTitle').textContent = n.title;
-  $('betweenImg').src = img(n, true);
+  $('betweenImg').src = img(n); $('betweenImg').alt = 'Illustration: ' + n.title;
   $('betweenMap').innerHTML = mapSVG(S.stop, S.stop + 1);
   if (window.TWMap) { var lg = TWMap.leg(S.stop); $('legTime').textContent = 'About ' + lg.minutes + (lg.minutes === 1 ? ' minute' : ' minutes') + ' · ' + lg.metres + ' m'; $('legGuide').textContent = TWMap.guide(S.stop); }
   $('betweenGoogle').href = gmaps(n.ll); $('betweenApple').href = amaps(n.ll);
@@ -356,9 +390,9 @@ function renderCredits() {
   $('crMusic').innerHTML = html;
   $('crFonts').innerHTML = (C.fonts || []).map(function (f) { return crRow('Aa', esc(f.name), [esc(f.by), esc(f.licence)]); }).join('');
 }
-function credits(on) { $('s-credits').hidden = !on; if (on) { renderCredits(); $('s-credits').querySelector('.sheet').scrollTop = 0; } }
-$('openCredits').addEventListener('click', function () { sheet(false); credits(true); });
-$('crBack').addEventListener('click', function () { credits(false); sheet(true); });
+function credits(on, how) { if (on) { renderCredits(); openScrim('s-credits', how); $('s-credits').querySelector('.sheet').scrollTop = 0; } else closeScrim('s-credits', how === 'now'); gearSpin(on); }
+$('openCredits').addEventListener('click', function () { sheet(false, 'now'); credits(true, 'push'); });
+$('crBack').addEventListener('click', function () { credits(false, 'now'); sheet(true, 'pop'); });
 $('crClose').addEventListener('click', function () { credits(false); });
 $('s-credits').addEventListener('click', function (e) { if (e.target === $('s-credits')) credits(false); });
 $('rate').addEventListener('input', function () { S.rate = parseFloat($('rate').value); au.playbackRate = S.rate; save(); renderSpeed(); });

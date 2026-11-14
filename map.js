@@ -118,7 +118,7 @@ function draw(o) {
   STREETS.forEach(function (s) { out += '<path d="' + line(s.pts) + '" stroke="var(--m-edge)" stroke-width="' + (s.walk ? 13 : 11) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'; });
   STREETS.forEach(function (s) { out += '<path d="' + line(s.pts) + '" stroke="' + (s.walk ? 'var(--m-walk)' : 'var(--m-road)') + '" stroke-width="' + (s.walk ? 10 : 8) + '" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'; });
   // the whole route, dotted
-  out += '<path d="' + line(PATH) + '" stroke="var(--m-route)" stroke-width="3" stroke-dasharray="0.1 7" stroke-linecap="round" fill="none" opacity="0.8"/>';
+  out += '<path class="mroute" d="' + line(PATH) + '" stroke="var(--m-route)" stroke-width="3" stroke-dasharray="0.1 7" stroke-linecap="round" fill="none" opacity="0.8"/>';
   if (zoom) {
     var leg = PATH.slice(AT[o.from], AT[o.to] + 1);
     out += '<path d="' + line(leg) + '" stroke="var(--card)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>';
@@ -160,8 +160,9 @@ function draw(o) {
     out += icon(ICON[i], Math.max(16, Math.min(W - 16, ix)), Math.max(16, Math.min(H - 16, iy)), p[0], p[1]);
     var r = here || dest ? 12 : (zoom ? 9.5 : 9);
     if (here) out += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="17" fill="var(--accent)" opacity="0.18"/>';
+    out += '<g class="mpin" style="--i:' + i + '">';
     out += '<circle data-stop="' + i + '" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + r + '" fill="' + (here ? 'var(--accent)' : dest ? 'var(--m-dest)' : heard ? 'var(--teal)' : 'var(--card)') + '" stroke="' + (here || dest ? 'var(--accent)' : 'var(--m-ink)') + '" stroke-width="' + (dest ? 2.5 : 1.5) + '"/>';
-    out += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 3.6).toFixed(1) + '" class="mn" fill="' + (here ? 'var(--card)' : 'var(--m-ink)') + '">' + (i + 1) + '</text>';
+    out += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 3.6).toFixed(1) + '" class="mn" fill="' + (here ? 'var(--card)' : 'var(--m-ink)') + '">' + (i + 1) + '</text></g>';
     if (zoom && (here || dest)) {
       var tag = here ? 'You are here' : 'Stop ' + (i + 1), tw = tag.length * 6.4 + 18, sg = here ? 1 : -1;
       tags.push({ x: clampX(p[0] + perp[0] * sg * 28, tw), y: clampY(p[1] + perp[1] * sg * 28), w: tw, tag: tag, here: here });
