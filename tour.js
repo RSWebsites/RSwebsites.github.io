@@ -42,7 +42,7 @@ function load(at, autoplay) {
   else { try { au.currentTime = at || 0; } catch (e) {} }
   au.playbackRate = S.rate;
   if (autoplay) play();
-  icons(); progress();
+  icons(); progress(); media();
   keepForOffline(stop().audio);
   if (STOPS[S.stop + 1]) keepForOffline(STOPS[S.stop + 1].audio);
 }
@@ -71,7 +71,7 @@ function seekTo(t) {
 }
 function seekBy(d) { seekTo(pos() + d); }
 ['play', 'pause'].forEach(function (ev) { au.addEventListener(ev, function () { if (chiming) return; icons(); media(); if (view === 'map') renderMap(); }); });
-au.addEventListener('play', function () { if (!chiming) shrinkForReading(); });
+au.addEventListener('play', function () { if (!chiming && view === 'player' && words(stop()) && !heroSmall) setHero(true); });
 au.addEventListener('timeupdate', function () { if (chiming) return; S.pos = au.currentTime; if (Math.floor(S.pos) % 3 === 0) save(); posState(); });
 au.addEventListener('ended', function () { if (chiming) { chiming = false; icons(); return; } finishStop(); });
 au.addEventListener('error', function () { if (chiming) { chiming = false; return; } if (au.src) toast('This stop did not load. Check your signal, or save the tour to your phone in Settings.'); icons(); });
@@ -98,10 +98,12 @@ function media() {
   try {
     if (!('mediaSession' in navigator)) return;
     var s = stop(), base = location.href.split('#')[0].replace(/[^/]*$/, '');
+    // The picture, title and subtitle phones show on the lock screen. Square sizes suit iPhone and Android.
     navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: 'Stop ' + (S.stop + 1) + ' of ' + N + ' · Tunbridge Wells audio tour', album: 'Royal Tunbridge Wells',
-      artwork: [{ src: base + img(s), sizes: '900x900', type: 'image/jpeg' }] });
+      artwork: [96, 256, 512].map(function (px) { return { src: base + 'media/art/' + s.img + '-' + px + '.jpg', sizes: px + 'x' + px, type: 'image/jpeg' }; }) });
     navigator.mediaSession.playbackState = playing() ? 'playing' : 'paused';
     var h = { play: toggle, pause: pause, seekbackward: function () { seekBy(-10); }, seekforward: function () { seekBy(10); },
+      seekto: function (d) { if (d && d.seekTime != null) seekTo(d.seekTime); },
       previoustrack: function () { if (S.stop > 0) goStop(S.stop - 1, true); }, nexttrack: function () { if (S.stop < N - 1) goStop(S.stop + 1, true); } };
     Object.keys(h).forEach(function (k) { try { navigator.mediaSession.setActionHandler(k, h[k]); } catch (e) {} });
   } catch (e) {}
@@ -112,6 +114,7 @@ function posState() { try { if (navigator.mediaSession && navigator.mediaSession
 function show(v) {
   view = v;
   ['start', 'resume', 'player', 'between', 'agree', 'map', 'end'].forEach(function (n) { $('v-' + n).hidden = n !== v; });
+  var el = $('v-' + v); el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
   if (v === 'player') renderPlayer();
   if (v === 'map') renderMap();
   var h = v === 'player' ? 'stop-' + (S.stop + 1) : (v === 'map' ? 'map' : '');
@@ -167,21 +170,23 @@ function renderPlayer() {
   else box.innerHTML = '<p class="none">The words for this stop are not available yet.</p>';
   $('smaller').hidden = $('bigger').hidden = !w;
   H0 = heroBase(); $('reader').scrollTop = 0; lastLine = -2; follow = true; $('follow').hidden = true;
-  layoutHero(); progress(true);
+  setHero(!!w && (S.pos > 0.5 || playing()), true); progress(true);
 }
-function layoutHero() {
-  if (view !== 'player') return;
-  var st = $('reader').scrollTop, h = Math.max(HMIN, H0 - st), f = (H0 - h) / (H0 - HMIN);
-  var full = $('hero').clientWidth, w = f < 0.001 ? full : Math.round(full - (full - HMIN) * f);
-  $('heroImg').style.height = h + 'px'; $('heroImg').style.width = w + 'px';
-  $('heroImg').style.borderRadius = Math.round(20 - 8 * f) + 'px';
-  $('hero').style.gap = Math.round(12 * f) + 'px';
-  $('heroTitle').style.opacity = f > 0.55 ? (f - 0.55) / 0.45 : 0;
-  $('tools').classList.toggle('on', f > 0.6 && !!words(stop()));
+/* The picture is either full size or a small thumbnail, and moves between the two in one smooth
+   animation. It no longer resizes while the words scroll, which made both jump. */
+var heroSmall = false;
+function setHero(small, instant) {
+  var hero = $('hero'), im = $('heroImg'), full = hero.clientWidth;
+  heroSmall = small;
+  if (instant) hero.classList.add('noanim');
+  im.style.height = (small ? HMIN : H0) + 'px';
+  im.style.width = (small ? HMIN : full) + 'px';
+  hero.classList.toggle('small', small);
+  $('tools').classList.toggle('on', small && !!words(stop()));
+  if (!instant && words(stop())) { lastLine = -2; setTimeout(function () { progress(true); }, 60); }
+  if (instant) { void hero.offsetWidth; hero.classList.remove('noanim'); }
 }
-function collapseGap() { return Math.max(0, H0 - HMIN); }
-function shrinkForReading() { if (view === 'player' && words(stop()) && $('reader').scrollTop < collapseGap() - 2) $('reader').scrollTo({ top: collapseGap(), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
-$('reader').addEventListener('scroll', function () { requestAnimationFrame(layoutHero); }, { passive: true });
+$('heroImg').addEventListener('click', function () { if (words(stop())) setHero(!heroSmall); });
 function userScrolled() { follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
 $('reader').addEventListener('touchmove', userScrolled, { passive: true });
 $('reader').addEventListener('wheel', userScrolled, { passive: true });
@@ -200,15 +205,17 @@ function progress(force) {
   for (var k = 0; k < kids.length; k++) kids[k].className = !started ? '' : (k === i ? 'now' : (k < i ? 'past' : ''));
   if (!follow && Date.now() - followAt > 8000) { follow = true; $('follow').hidden = true; }
   if (follow && started && kids[i]) {
-    var r = $('reader'), target = Math.max(collapseGap(), kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3);
-    r.scrollTo({ top: Math.max(0, target), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    var r = $('reader'), target = kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3;
+    // once the small picture shows the title, scroll the repeated heading out of view
+    var floor = heroSmall ? kids[0].offsetTop - r.offsetTop - 12 : 0;
+    r.scrollTo({ top: Math.max(floor, target), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
   lastLine = key;
 }
 function setFs(v) { S.fs = Math.max(14, Math.min(26, v)); save(); var kids = $('lines').children; for (var k = 0; k < kids.length; k++) kids[k].style.fontSize = S.fs + 'px'; lastLine = -2; progress(true); }
 $('smaller').addEventListener('click', function () { setFs(S.fs - 2); });
 $('bigger').addEventListener('click', function () { setFs(S.fs + 2); });
-window.addEventListener('resize', function () { if (view === 'player') { H0 = heroBase(); layoutHero(); } });
+window.addEventListener('resize', function () { if (view === 'player') { H0 = heroBase(); setHero(heroSmall, true); } });
 $('play').addEventListener('click', function () { warm(); toggle(); });
 $('back10').addEventListener('click', function () { seekBy(-10); });
 $('fwd10').addEventListener('click', function () { seekBy(10); });

@@ -15,6 +15,7 @@
   --m-bg: #F4EFE6; --m-park: #CFE5D3; --m-tree: #B5D6BC; --m-road: #FFFFFF; --m-edge: #DCD5C9; --m-walk: #FBE3D6;
   --m-rail: #8A8F98; --m-route: #2B6F7E; --m-dest: #FBE3D6; --m-ink: #1D2430; --m-bld: #F6DCCF; --m-bld2: #E2C2B0;
   --m-roof: #A8D5E2; --m-glass: #CCE7FF; --m-water: #6FBCD0; --m-label: #5B6472; --m-park-ink: #4E7A57;
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -94,10 +95,14 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 @media (max-width: 380px) { .ubtn .txt { display: none; } .navbtn .txt { display: none; } .navbtn[data-settings] { padding: 0 12px; } .topcenter { letter-spacing: 0.04em; font-size: 11px; } }
 
 /* Player: picture shrinks as the words move on */
-.hero { flex: none; display: flex; align-items: center; margin-top: 8px; overflow: hidden; }
-.heroimg { flex: none; width: 100%; border-radius: 20px; overflow: hidden; background: var(--teal-soft); }
+.hero { flex: none; display: flex; align-items: center; margin-top: 8px; overflow: hidden; gap: 0; transition: gap 0.5s var(--ease); }
+.hero.small { gap: 12px; }
+.heroimg { flex: none; width: 100%; border-radius: 20px; overflow: hidden; background: var(--teal-soft); cursor: pointer; transition: height 0.5s var(--ease), width 0.5s var(--ease), border-radius 0.5s var(--ease); will-change: height, width; }
+.hero.small .heroimg { border-radius: 14px; }
 .heroimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.herotitle { flex: 1; min-width: 0; opacity: 0; }
+.herotitle { flex: 1; min-width: 0; opacity: 0; transition: opacity 0.25s ease; }
+.hero.small .herotitle { opacity: 1; transition: opacity 0.35s ease 0.2s; }
+.hero.noanim, .hero.noanim * { transition: none !important; }
 .tools { flex: none; display: flex; flex-direction: row; align-items: center; gap: 5px; margin-left: 6px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .tools.on { opacity: 1; pointer-events: auto; }
 .tbtn { min-width: 40px; min-height: 38px; padding: 0 8px; border-radius: 12px; background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); font-size: 13px; font-weight: 600; text-align: center; }
@@ -108,7 +113,7 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .readwrap { flex: 1 1 auto; min-height: 70px; position: relative; display: flex; flex-direction: column; }
 .reader { flex: 1 1 auto; min-height: 70px; overflow-y: auto; overflow-x: hidden; padding-top: 10px; -webkit-mask-image: linear-gradient(transparent, #000 18px, #000 85%, transparent); mask-image: linear-gradient(transparent, #000 18px, #000 85%, transparent); }
 .lines { display: flex; flex-direction: column; gap: 2px; padding: 10px 0 40vh; }
-.lines button { text-align: left; border-radius: 10px; padding: 6px 10px; margin: 0; line-height: 1.45; color: var(--muted); opacity: 0.75; transition: color 0.3s, background 0.3s, opacity 0.3s; }
+.lines button { transition-timing-function: ease; text-align: left; border-radius: 10px; padding: 6px 10px; margin: 0; line-height: 1.45; color: var(--muted); opacity: 0.75; transition: color 0.45s ease, background-color 0.45s ease, opacity 0.45s ease; }
 .lines button.past { opacity: 1; }
 .lines button.now { color: var(--ink); background: var(--teal-soft); opacity: 1; }
 .lines .none { color: var(--muted); font-size: 14px; padding: 6px 0; }
@@ -217,4 +222,7 @@ h2 { font-size: clamp(23px, 6.4vw, 28px); }
 .faq p { padding: 0 0 12px; font-size: 14px; color: var(--muted); }
 
 .toast { position: absolute; left: 16px; right: 16px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 40; background: var(--btn); color: var(--on-btn); border-radius: 16px; padding: 14px 16px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); }
+.view.enter { animation: viewin 0.28s var(--ease); }
+@keyframes viewin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .view.enter { animation: none; } .heroimg, .hero, .herotitle, .lines button, .tools { transition: none !important; } }
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } .tl-progress, .event .det { transition: none; } }

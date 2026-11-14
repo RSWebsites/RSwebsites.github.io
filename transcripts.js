@@ -54,11 +54,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 3.91,
-   "text": "Picture this place in the steam train era."
-  },
-  {
-   "t": 6.31,
-   "text": "When Tunbridge Wells was a bustling spa town and the station was its vibrant hub."
+   "text": "Picture this place in the steam train era, when Tunbridge Wells was a bustling spa town and the station was its vibrant hub."
   },
   {
    "t": 12.23,
@@ -112,11 +108,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 7.72,
-   "text": "The department store should be on your left."
+   "text": "A department store should be on your left."
   },
   {
    "t": 20.2,
-   "text": "Turn left onto Grove Hill Road and approach a crossing."
+   "text": "Make a left onto Grove Hill Road and approach a crossing."
   },
   {
    "t": 23.53,
@@ -148,11 +144,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 90.63,
-   "text": "Royal Tunbridge Wells holds the rare distinction of the royal prefix."
-  },
-  {
-   "t": 95.27,
-   "text": "A privilege shared by only three other towns in England."
+   "text": "Royal Tunbridge Wells holds the rare distinction of the royal prefix, a privilege shared by only three other towns in England."
   },
   {
    "t": 98.18,
@@ -274,11 +266,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 6.15,
-   "text": "Since its transformation in 1993, this cultural hub in Tunbridge Wells has welcomed some of the most notable names in British music."
+   "text": "Since its transformation in 1993, this cultural hub in Tunbridge Wells has welcomed some of the most notable names in British music: Oasis, Adele and Ellie Goulding."
   },
   {
-   "t": 13.77,
-   "text": "Oasis, Adele and Ellie Goulding. The robust utilitarian structure subtly conceals an extraordinary world within. Approach it, let the city's noise fade, replaced by a symphony of unforgettable performances."
+   "t": 16.17,
+   "text": "The robust utilitarian structure subtly conceals an extraordinary world within. Approach it and let the city's noise fade, replaced by a symphony of unforgettable performances."
   },
   {
    "t": 28.1,
@@ -286,7 +278,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 36.55,
-   "text": "Inside, the soundscape shifts in the dim lit space adorned with posters that serve as a timeline of acts gracing the stage, echoing the venue's rich heritage. The Forum isn't just about the big names."
+   "text": "Inside, the soundscape shifts in the dimly lit space adorned with posters that serve as a timeline of acts gracing the stage, echoing the venue's rich heritage. The Forum isn't just about the big names."
   },
   {
    "t": 49.0,
@@ -324,11 +316,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 20.52,
-   "text": "Now why King Charles the Martyr you might ask?"
+   "text": "Now, why King Charles the Martyr, you might ask?"
   },
   {
    "t": 23.4,
-   "text": "Well here's a gripping tale of loyalty and reverence."
+   "text": "Well, here's a gripping tale of loyalty and reverence."
   },
   {
    "t": 26.73,
@@ -336,7 +328,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 34.18,
-   "text": "His death was a controversial event leading to a Republican rule under Oliver Cromwell."
+   "text": "His death was a controversial event leading to republican rule under Oliver Cromwell."
   },
   {
    "t": 39.72,
@@ -344,7 +336,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 43.27,
-   "text": "After a decade of unrest in 1660, his son, Charles II, was restored to the throne, marking a triumphant return of monarchy."
+   "text": "After a decade of unrest, in 1660 his son, Charles II, was restored to the throne, marking a triumphant return of monarchy."
   },
   {
    "t": 52.01,
@@ -472,7 +464,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 2.95,
-   "text": "Quite an intriguing name, isn't it? You see the tale dates back to the 17th century, when a portion of this enchanting walkway was paved with peculiar clay tiles, known as pantiles, derived from their pan-like shape."
+   "text": "Quite an intriguing name, isn't it? You see, the tale dates back to the 17th century, when a portion of this enchanting walkway was paved with peculiar clay tiles, known as pantiles, derived from their pan-like shape."
   },
   {
    "t": 16.61,
@@ -554,7 +546,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 31.81,
-   "text": "The Pantiles' architecture is characterized by its harmony with nature, and its emphasis on proportion and balance."
+   "text": "The Pantiles' architecture is characterized by its harmony with nature and its emphasis on proportion and balance."
   },
   {
    "t": 38.53,
@@ -582,7 +574,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 87.72,
-   "text": "Picture the bandstand, a historic structure standing at the heart of the square."
+   "text": "Picture the bandstand: historic, proud, standing at the heart of the square."
   },
   {
    "t": 92.42,
