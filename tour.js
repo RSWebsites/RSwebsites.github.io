@@ -6,8 +6,8 @@ var STOPS = [
   { id: 'intro', short: 'Intro', title: 'Introduction', sub: 'Includes safety notes', audio: 'Disclaimer.mp3', img: 'intro', dur: 57, ll: [51.13030, 0.26366] },
   { id: 'station', short: 'Station', title: 'Tunbridge Wells Station', sub: '', audio: 'Train.mp3', img: 'station', dur: 95, ll: [51.1302233, 0.263371] },
   { id: 'high-street', short: 'High St', title: 'The High Street', sub: '', audio: 'High-Street.mp3', img: 'high-street', dur: 345, ll: [51.1294835, 0.2635699] },
-  { id: 'forum', short: 'Forum', title: 'The Forum', sub: 'Music venue', audio: 'Forum.mp3', img: 'forum', dur: 76, ll: [51.1273883, 0.260389] },
   { id: 'church', short: 'Church', title: 'Church of King Charles the Martyr', sub: '', audio: 'Chapel.mp3', img: 'church', dur: 180, ll: [51.1268706, 0.2594122] },
+  { id: 'forum', short: 'Forum', title: 'The Forum', sub: 'Music venue', audio: 'Forum.mp3', img: 'forum', dur: 76, ll: [51.1273883, 0.260389] },
   { id: 'spring', short: 'Spring', title: 'The Chalybeate Spring', sub: '', audio: 'Spring.mp3', img: 'spring', dur: 136, ll: [51.1266707, 0.258696] },
   { id: 'pantiles', short: 'Pantiles', title: 'The Pantiles', sub: '', audio: 'Pantiles.mp3', img: 'pantiles', dur: 115, ll: [51.12625, 0.25815] },
   { id: 'jazz-stand', short: 'Jazz Stand', title: 'The Jazz Stand', sub: 'Includes closing remarks', audio: 'Band-Stand.mp3', img: 'jazz-stand', dur: 167, ll: [51.1257606, 0.2575458] }
@@ -19,6 +19,8 @@ var AUDIO_CACHE = 'tw-audio-v1';
 /* ---------- saved state (works without storage too) ---------- */
 var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false, fs: 16 };
 try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && typeof o === 'object') Object.assign(S, o); } } catch (e) {}
+// Church and Forum swapped places (the recordings play church first). Move saved progress with them.
+if (!S.order) { var sw = function (i) { return i === 3 ? 4 : i === 4 ? 3 : i; }; S.stop = sw(S.stop); S.heard = (S.heard || []).map(sw); S.order = 2; }
 if (!(S.stop >= 0 && S.stop < N)) S.stop = 0;
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -389,25 +391,25 @@ function renderSettings() { renderSpeed(); offlineStatus(); }
 /* ---------- credits & licences (data in credits.js) ---------- */
 function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function crRow(n, head, lines) { return '<div class="cr"><span class="crn" aria-hidden="true">' + n + '</span><div><b>' + head + '</b>' + lines.map(function (l) { return '<p>' + l + '</p>'; }).join('') + '</div></div>'; }
+var CC = { 'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0/', 'CC BY 3.0': 'https://creativecommons.org/licenses/by/3.0/', 'CC BY 2.5': 'https://creativecommons.org/licenses/by/2.5/',
+  'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 3.0': 'https://creativecommons.org/licenses/by-sa/3.0/', 'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0/', 'CC BY-SA': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'CC0 1.0': 'https://creativecommons.org/publicdomain/zero/1.0/', 'Public Domain Mark 1.0': 'https://creativecommons.org/publicdomain/mark/1.0/' };
+function lnk(url, text) { return url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + text + '</a>' : text; }
+function crItem(it) {
+  var name = lnk(it.link, '“' + esc(it.title) + '”') + (it.by ? ' by ' + esc(it.by) : '');
+  var lic = it.licence ? lnk(CC[it.licence], esc(it.licence)) : (it.link ? 'Licence: see source' : '<span class="crtodo">Source and licence to be added</span>');
+  return '<li>' + name + '<span class="crmeta">' + [it.source ? esc(it.source) : '', lic].filter(Boolean).join(' · ') + '</span></li>';
+}
 function renderCredits() {
   var C = window.CREDITS || { stops: [], fonts: [] }, html = '';
   STOPS.forEach(function (s, i) {
-    var c = C.stops.filter(function (x) { return x.stop === i + 1; })[0] || {}, lines = [];
-    if (c.none) lines.push(esc(c.none));
-    (c.items || []).forEach(function (it) {
-      var name = it.title ? '“' + esc(it.title) + '”' : '';
-      if (name && it.link) name = '<a href="' + esc(it.link) + '" target="_blank" rel="noopener">' + name + '</a>';
-      if (it.by) name += (name ? ' by ' : 'By ') + esc(it.by);
-      var src = [it.source, it.licence].filter(Boolean).map(esc).join(' · ');
-      lines.push('<span class="crwhat">' + esc(it.what) + '</span>');
-      if (name) lines.push(name);
-      if (src) lines.push(src);
-      if (!it.source && !it.licence) lines.push('<span class="crtodo">' + (name ? 'Source and licence to be added' : 'Track details to be added') + '</span>');
-    });
-    html += crRow(i + 1, esc(s.title), lines);
+    var c = C.stops.filter(function (x) { return x.stop === i + 1; })[0] || {};
+    var body = c.none ? ['<p>' + esc(c.none) + '</p>'] : (c.items && c.items.length ? ['<ul class="crul">' + c.items.map(crItem).join('') + '</ul>'] : ['<p class="crtodo">Track details to be added</p>']);
+    html += '<div class="cr"><span class="crn" aria-hidden="true">' + (i + 1) + '</span><div><b>' + esc(s.title) + '</b>' + body.join('') + '</div></div>';
   });
   if (C.chime) html += crRow('♪', 'End-of-stop chime', [esc(C.chime)]);
   $('crMusic').innerHTML = html;
+  $('crWords').innerHTML = (C.words || []).length ? '<div class="cr"><span class="crn" aria-hidden="true">✎</span><div><b>Sources for the narration</b><ul class="crul">' + C.words.map(crItem).join('') + '</ul></div></div>' : '';
   $('crFonts').innerHTML = (C.fonts || []).map(function (f) { return crRow('Aa', esc(f.name), [esc(f.by), esc(f.licence)]); }).join('');
 }
 function credits(on, how) { if (on) { renderCredits(); openScrim('s-credits', how); $('s-credits').querySelector('.sheet').scrollTop = 0; } else closeScrim('s-credits', how === 'now'); gearSpin(on); }

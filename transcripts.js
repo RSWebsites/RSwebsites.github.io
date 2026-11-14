@@ -32,7 +32,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 33.83,
-   "text": "Take extra care and pause the audio tour when necessary to prioritize your safety and maintain situational awareness."
+   "text": "Take extra care and pause the audio tour when necessary to prioritise your safety and maintain situational awareness."
   },
   {
    "t": 41.22,
@@ -58,11 +58,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 12.23,
-   "text": "Tunbridge Wells train station played a crucial role in the town's development."
+   "text": "Tunbridge Wells Train Station played a crucial role in the town's development."
   },
   {
    "t": 16.74,
-   "text": "In the mid 19th century, rail travel was revolutionizing Britain and Tunbridge Wells was no exception."
+   "text": "In the mid-19th century, rail travel was revolutionising Britain and Tunbridge Wells was no exception."
   },
   {
    "t": 23.65,
@@ -70,11 +70,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 30.6,
-   "text": "The station connected Tunbridge Wells to London, via the Southeastern Railway's main line through Tonbridge and Sevenoaks. In 1851, a new line to Robertsbridge was completed, enhancing its role as an essential travel hub."
+   "text": "The station connected Tunbridge Wells to London, via the South Eastern Railway's main line through Tonbridge and Sevenoaks. In 1851, a new line to Robertsbridge was completed, enhancing its role as an essential travel hub."
   },
   {
    "t": 44.93,
-   "text": "These developments symbolize Tunbridge Wells' growing significance during the Victorian era."
+   "text": "These developments symbolise Tunbridge Wells' growing significance during the Victorian era."
   },
   {
    "t": 51.27,
@@ -86,7 +86,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 61.19,
-   "text": "The station's establishment catalyzed the transformation of Tunbridge Wells from a rural town into a vibrant commercial center."
+   "text": "The station's establishment catalysed the transformation of Tunbridge Wells from a rural town into a vibrant commercial centre."
   },
   {
    "t": 69.93,
@@ -152,7 +152,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 104.58,
-   "text": "This honor was bestowed upon Tunbridge Wells in 1909 by King Edward VII, due to its popularity among members of the royal family."
+   "text": "This honour was bestowed upon Tunbridge Wells in 1909 by King Edward VII, due to its popularity among members of the royal family."
   },
   {
    "t": 121.22,
@@ -192,7 +192,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 200.45,
-   "text": "As we navigate through Royal Tunbridge Wells, with its neighbors High Brooms to the north, and Hawkenbury to the south, we experience a seamless blend of varied cultures and histories that contribute to the unique character of Tunbridge Wells, a town replete with royal charm, geological wonders and a rich history that is as fascinating as it is diverse."
+   "text": "As we navigate through Royal Tunbridge Wells, with its neighbours High Brooms to the north, and Hawkenbury to the south, we experience a seamless blend of varied cultures and histories that contribute to the unique character of Tunbridge Wells, a town replete with royal charm, geological wonders and a rich history that is as fascinating as it is diverse."
   },
   {
    "t": 227.53,
@@ -220,7 +220,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 282.82,
-   "text": "Continue your leisurely walk down this lane until you meet the red door of the church of King Charles the Martyr."
+   "text": "Continue your leisurely walk down this lane until you meet the red door of the Church of King Charles the Martyr."
   },
   {
    "t": 293.06,
@@ -304,7 +304,7 @@ window.TRANSCRIPTS = {
  "Chapel": [
   {
    "t": 0.07,
-   "text": "You are now standing in front of the church of King Charles the Martyr."
+   "text": "You are now standing in front of the Church of King Charles the Martyr."
   },
   {
    "t": 4.01,
@@ -364,7 +364,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 103.05,
-   "text": "The ceilings inside are made of plaster with five domes, designed in 1678 by John Wetherill."
+   "text": "The ceilings inside are made of plaster with five domes, designed in 1678 by John Wetherell."
   },
   {
    "t": 109.45,
@@ -388,7 +388,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 156.77,
-   "text": "The ceiling, which is very remarkable, is covered with floral moldings."
+   "text": "The ceiling, which is very remarkable, is covered with floral mouldings."
   },
   {
    "t": 161.08,
@@ -410,7 +410,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 18.89,
-   "text": "This spring, rich in iron and later known as the Chalybeate Spring, revitalizes Lord North."
+   "text": "This spring, rich in iron and later known as the Chalybeate Spring, revitalises Lord North."
   },
   {
    "t": 24.81,
@@ -454,7 +454,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 125.89,
-   "text": "So, take your time, savor the waters of the spring and let the tale of Tunbridge Wells unfold before you."
+   "text": "So, take your time, savour the waters of the spring and let the tale of Tunbridge Wells unfold before you."
   }
  ],
  "Pantiles": [
@@ -546,7 +546,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 31.81,
-   "text": "The Pantiles' architecture is characterized by its harmony with nature and its emphasis on proportion and balance."
+   "text": "The Pantiles' architecture is characterised by its harmony with nature and its emphasis on proportion and balance."
   },
   {
    "t": 38.53,
@@ -570,7 +570,7 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 81.32,
-   "text": "Every year the Pantiles becomes a beacon for jazz enthusiasts as it hosts its legendary summer jazz season."
+   "text": "Every year the Pantiles becomes a beacon for jazz enthusiasts as it hosts its legendary Summer Jazz Season."
   },
   {
    "t": 87.72,
@@ -594,11 +594,11 @@ window.TRANSCRIPTS = {
   },
   {
    "t": 108.65,
-   "text": "A waft of mouthwatering aromas fills the air."
+   "text": "A waft of mouth-watering aromas fills the air."
   },
   {
    "t": 111.59,
-   "text": "That's the food festival, a grand celebration of culinary delights both local and international."
+   "text": "That's the Food Festival, a grand celebration of culinary delights both local and international."
   },
   {
    "t": 117.19,

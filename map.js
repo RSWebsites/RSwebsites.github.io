@@ -7,21 +7,24 @@ var PATH = [
   [51.13030, 0.26366], [51.13022, 0.26337],
   [51.12995, 0.26345], [51.12965, 0.26352], [51.12948, 0.26357], [51.12925, 0.26325],
   [51.12880, 0.26255], [51.12830, 0.26175], [51.12790, 0.26100], [51.12739, 0.26039],
-  [51.12715, 0.26000], [51.12687, 0.25941], [51.12680, 0.25905], [51.12667, 0.25870],
-  [51.12625, 0.25815], [51.12576, 0.25755]
+  [51.12715, 0.26000], [51.12687, 0.25941],
+  // from the church sundial, back round the church to look over Fonthill at the Forum, then back
+  [51.12700, 0.25968], [51.12705, 0.25985], [51.12700, 0.25968], [51.12687, 0.25941],
+  [51.12680, 0.25905], [51.12667, 0.25870], [51.12625, 0.25815], [51.12576, 0.25755]
 ];
 // Where each stop sits on PATH.
-var AT = [0, 1, 4, 9, 11, 13, 14, 15];
-var NAMES = ['Start', 'Station', 'High Street', 'The Forum', 'Church', 'Spring', 'Pantiles', 'Jazz Stand'];
-var ICON = ['hall', 'train', 'shop', 'music', 'church', 'spring', 'columns', 'bandstand'];
+var AT = [0, 1, 4, 11, 13, 17, 18, 19];
+var NAMES = ['Start', 'Station', 'High Street', 'Church', 'The Forum', 'Spring', 'Pantiles', 'Jazz Stand'];
+var ICON = ['hall', 'train', 'shop', 'church', 'music', 'spring', 'columns', 'bandstand'];
+// Walking directions between stops, from the tour script.
 var GUIDE = [
-  'Cross over to the station entrance, opposite the Great Hall.',
-  'Walk down Mount Pleasant Road to the top of the High Street.',
-  'Follow the High Street downhill, past the shops.',
-  'Keep going to the bottom of the High Street. The church is on the corner.',
-  'Cross towards the Pantiles. The spring is just inside the entrance.',
-  'Walk into the Pantiles, under the colonnade.',
-  'Carry on along the Pantiles to the band stand.'
+  'Stay on Mount Pleasant Road, on the pavement opposite the station entrance, and face the station.',
+  'Stop 3 walks with you. Start it here: it takes you towards the roundabout, across Grove Hill Road and down the High Street, staying on the left-hand pavement.',
+  'Follow stop 3 to the foot of the High Street, cross into Chapel Place and walk to the red door of the church. Turn right at its signpost and go round the church to the wall with the sundial, opposite Framptons pub.',
+  'Walk back round the church until you can see the small mound of grass called Fonthill. The Forum is the building to the left of the hill.',
+  'Go back round the church to the sundial. Use the crossing on your left towards the Pantiles signs, take a few steps right, then turn left. Walk along the Pantiles and stop just before some steps: the spring is in the corner behind you, on your right.',
+  'You are on the Pantiles. Play the next stop here and stroll slowly along the walkway as you listen.',
+  'Carry on along the Pantiles until you reach a white bandstand with the sign \u2018The Upper Walk\u2019.'
 ];
 var STREETS = [
   { name: 'Mount Pleasant Rd', pts: [[51.1328, 0.26405], [51.1306, 0.2639], [51.12948, 0.26357]] },
