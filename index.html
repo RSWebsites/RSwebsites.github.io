@@ -36,6 +36,7 @@
           <a class="pillbtn" id="startApple" target="_blank" rel="noopener">Apple Maps</a>
         </div>
       </div>
+      <p class="savechip" id="saveChip" hidden></p>
       <div class="stack gap-s ticks">
         <p class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>Best with headphones. No headphones? Hold the phone to your ear.</p>
         <p class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>Look up when you cross roads. Pause the tour whenever you need to.</p>
@@ -81,10 +82,17 @@
     <span class="topcenter" id="stopLabel">Stop 1 of 8</span>
     <button class="navbtn" data-settings aria-label="Settings and help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="txt">Settings</span></button>
   </div>
-  <div class="art"><img id="photo" alt=""></div>
-  <div class="stopinfo">
-    <h2 id="stopTitle">Introduction</h2>
-    <p class="muted" id="stopSub"></p>
+  <div class="hero" id="hero">
+    <div class="heroimg" id="heroImg"><img id="photo" alt=""></div>
+    <div class="herotitle" id="heroTitle"><b id="heroTitleText"></b><span id="heroSubText"></span></div>
+  </div>
+  <div class="readwrap">
+    <div class="reader" id="reader">
+      <h2 id="stopTitle">Introduction</h2>
+      <p class="muted small" id="stopSub"></p>
+      <div class="lines" id="lines"></div>
+    </div>
+    <button class="follow" id="follow" hidden>Back to the words being read</button>
   </div>
   <div class="panel">
     <div class="seek" id="seek" role="slider" aria-label="Position in this stop" tabindex="0" aria-valuemin="0">
@@ -99,8 +107,10 @@
       <button class="ctl" id="next"><span class="ring"><svg viewBox="0 0 24 24" aria-hidden="true" class="fill"><path d="M6 5v14l10-7z"/><rect x="16.5" y="5" width="2.5" height="14" rx="1"/></svg></span><span class="lab">Next</span></button>
     </div>
     <div class="utils">
+      <button class="ubtn" id="smaller" aria-label="Smaller text">A−</button>
+      <button class="ubtn" id="bigger" aria-label="Bigger text" style="font-size: 16px">A+</button>
       <button class="ubtn" id="speedBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l4-4"/></svg><span id="speedLabel">Speed 1×</span></button>
-      <a class="ubtn" id="dirBtn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a>
+      <a class="ubtn" id="dirBtn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="txt">Directions</span></a>
     </div>
     <div class="foot nextrow">
       <button class="go" id="upNext"><svg viewBox="0 0 24 24" aria-hidden="true" class="accent"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span><b>Up next:</b> <span id="upNextText"></span></span></button>
@@ -124,8 +134,12 @@
         <h2 id="betweenTitle">Tunbridge Wells Station</h2>
       </div>
     </div>
-    <div class="mapbox" id="betweenMap"></div>
-    <p class="tick strong"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v3M7 12l3-4 4 2 3 3M10 8l-1 5"/></svg>Walk to the next stop. The narration tells you the way.</p>
+    <div class="mapbox map" id="betweenMap"></div>
+    <div class="card guide stack gap-xs">
+      <p class="row gap-s strong"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v3M7 12l3-4 4 2 3 3M10 8l-1 5"/></svg><span id="legTime">About 4 minutes · 320 m</span></p>
+      <p id="legGuide">Follow the High Street downhill.</p>
+      <p class="muted small">The narration also tells you the way.</p>
+    </div>
     <div class="row wrap gap-s">
       <a class="pillbtn" id="betweenGoogle" target="_blank" rel="noopener">Walking directions · Google</a>
       <a class="pillbtn" id="betweenApple" target="_blank" rel="noopener">Apple Maps</a>
@@ -170,7 +184,7 @@
     <button class="navbtn" data-settings aria-label="Settings and help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span class="txt">Settings</span></button>
   </div>
   <div class="scroll">
-    <div class="mapbox" id="mapSvg"></div>
+    <div class="mapbox map" id="mapSvg"></div>
     <div class="row wrap gap-s mt-s">
       <a class="pillbtn" id="routeGoogle" target="_blank" rel="noopener">Whole route · Google Maps</a>
       <a class="pillbtn" id="routeApple" target="_blank" rel="noopener">Apple Maps</a>
@@ -250,6 +264,8 @@
 
 <div class="toast" id="toast" role="status" hidden></div>
 </div>
+<script src="map.js"></script>
+<script src="transcripts.js"></script>
 <script src="tour.js"></script>
 </body>
 </html>

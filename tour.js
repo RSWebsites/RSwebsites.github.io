@@ -9,7 +9,7 @@ var STOPS = [
   { id: 'forum', short: 'Forum', title: 'The Forum', sub: 'Music venue', audio: 'Forum.mp3', img: 'forum', dur: 76, ll: [51.1273883, 0.260389] },
   { id: 'church', short: 'Church', title: 'Church of King Charles the Martyr', sub: '', audio: 'Chapel.mp3', img: 'church', dur: 180, ll: [51.1268706, 0.2594122] },
   { id: 'spring', short: 'Spring', title: 'The Chalybeate Spring', sub: '', audio: 'Spring.mp3', img: 'spring', dur: 136, ll: [51.1266707, 0.258696] },
-  { id: 'pantiles', short: 'Pantiles', title: 'The Pantiles', sub: '', audio: 'Pantiles.mp3', img: 'pantiles', dur: 115, ll: [51.126875, 0.2591668] },
+  { id: 'pantiles', short: 'Pantiles', title: 'The Pantiles', sub: '', audio: 'Pantiles.mp3', img: 'pantiles', dur: 115, ll: [51.12625, 0.25815] },
   { id: 'jazz-stand', short: 'Jazz Stand', title: 'The Jazz Stand', sub: 'Includes closing remarks', audio: 'Band-Stand.mp3', img: 'jazz-stand', dur: 167, ll: [51.1257606, 0.2575458] }
 ];
 var N = STOPS.length;
@@ -17,7 +17,7 @@ var KEY = 'tw-tour-v1';
 var AUDIO_CACHE = 'tw-audio-v1';
 
 /* ---------- saved state (works without storage too) ---------- */
-var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false };
+var S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false, fs: 16 };
 try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); if (o && typeof o === 'object') Object.assign(S, o); } } catch (e) {}
 if (!(S.stop >= 0 && S.stop < N)) S.stop = 0;
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -144,24 +144,67 @@ function chime() {
 }
 
 /* ---------- player ---------- */
+function words(s) { var t = window.TRANSCRIPTS && window.TRANSCRIPTS[s.audio.replace('.mp3', '')]; return t && t.length ? t : null; }
+var follow = true, followAt = 0, lastLine = -2, H0 = 220, HMIN = 64;
+function heroBase() { var h = window.innerHeight; return Math.round(Math.max(110, Math.min(260, h * (h < 700 ? 0.22 : 0.3)))); }
 function renderPlayer() {
-  var s = stop(), n = STOPS[S.stop + 1];
+  var s = stop(), n = STOPS[S.stop + 1], w = words(s);
   $('stopLabel').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N;
   $('photo').src = img(s); $('photo').alt = 'Illustration: ' + s.title;
   $('stopTitle').textContent = s.title; $('stopSub').textContent = s.sub;
+  $('heroTitleText').textContent = s.title; $('heroSubText').textContent = 'Stop ' + (S.stop + 1) + ' of ' + N;
   $('prev').disabled = S.stop === 0;
   $('speedLabel').textContent = 'Speed ' + S.rate + '×';
   $('dirBtn').href = gmaps(s.ll);
   $('upNextText').textContent = n ? n.title : 'End of the tour';
-  progress();
+  var box = $('lines'); box.innerHTML = '';
+  if (w) w.forEach(function (l, i) {
+    var b = document.createElement('button'); b.textContent = l.text; b.style.fontSize = S.fs + 'px';
+    b.addEventListener('click', function () { seekTo(l.t + 0.01); follow = true; $('follow').hidden = true; if (!playing()) { warm(); toggle(); } });
+    box.appendChild(b);
+  });
+  else box.innerHTML = '<p class="none">The words for this stop are not available yet.</p>';
+  $('smaller').hidden = $('bigger').hidden = !w;
+  H0 = heroBase(); $('reader').scrollTop = 0; lastLine = -2; follow = true; $('follow').hidden = true;
+  layoutHero(); progress(true);
 }
-function progress() {
+function layoutHero() {
+  if (view !== 'player') return;
+  var st = $('reader').scrollTop, h = Math.max(HMIN, H0 - st), f = (H0 - h) / (H0 - HMIN);
+  var full = $('hero').clientWidth, w = f < 0.001 ? full : Math.round(full - (full - HMIN * 1.3) * f);
+  $('heroImg').style.height = h + 'px'; $('heroImg').style.width = w + 'px';
+  $('heroImg').style.borderRadius = Math.round(20 - 8 * f) + 'px';
+  $('hero').style.gap = Math.round(12 * f) + 'px';
+  $('heroTitle').style.opacity = f > 0.55 ? (f - 0.55) / 0.45 : 0;
+}
+$('reader').addEventListener('scroll', function () { requestAnimationFrame(layoutHero); }, { passive: true });
+function userScrolled() { follow = false; followAt = Date.now(); if (words(stop())) $('follow').hidden = false; }
+$('reader').addEventListener('touchmove', userScrolled, { passive: true });
+$('reader').addEventListener('wheel', userScrolled, { passive: true });
+$('follow').addEventListener('click', function () { follow = true; $('follow').hidden = true; lastLine = -2; progress(true); });
+function lineAt(t, w) { var i = 0; for (var k = 0; k < w.length; k++) if (t >= w[k].t - 0.15) i = k; return i; }
+function progress(force) {
   if (view !== 'player') return;
   var t = pos(), d = dur(), pct = Math.min(100, t / d * 100);
   $('fill').style.width = pct + '%'; $('knob').style.left = pct + '%';
   $('tNow').textContent = fmt(t); $('tDur').textContent = '-' + fmt(d - t);
   var sk = $('seek'); sk.setAttribute('aria-valuemax', Math.round(d)); sk.setAttribute('aria-valuenow', Math.round(t)); sk.setAttribute('aria-valuetext', fmt(t) + ' of ' + fmt(d));
+  var w = words(stop()); if (!w) return;
+  var started = t > 0.05 || playing(), i = lineAt(t, w), key = started ? i : -1;
+  if (key === lastLine && !force) return;
+  var kids = $('lines').children;
+  for (var k = 0; k < kids.length; k++) kids[k].className = !started ? '' : (k === i ? 'now' : (k < i ? 'past' : ''));
+  if (!follow && Date.now() - followAt > 8000) { follow = true; $('follow').hidden = true; }
+  if (follow && started && kids[i]) {
+    var r = $('reader'), target = i === 0 ? 0 : kids[i].offsetTop - r.offsetTop - r.clientHeight * 0.3;
+    r.scrollTo({ top: Math.max(0, target), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  lastLine = key;
 }
+function setFs(v) { S.fs = Math.max(14, Math.min(26, v)); save(); var kids = $('lines').children; for (var k = 0; k < kids.length; k++) kids[k].style.fontSize = S.fs + 'px'; lastLine = -2; progress(true); }
+$('smaller').addEventListener('click', function () { setFs(S.fs - 2); });
+$('bigger').addEventListener('click', function () { setFs(S.fs + 2); });
+window.addEventListener('resize', function () { if (view === 'player') { H0 = heroBase(); layoutHero(); } });
 $('play').addEventListener('click', function () { warm(); toggle(); });
 $('back10').addEventListener('click', function () { seekBy(-10); });
 $('fwd10').addEventListener('click', function () { seekBy(10); });
@@ -181,23 +224,9 @@ $('speedBtn').addEventListener('click', function () { sheet(true); });
 
 /* ---------- map ---------- */
 function mapSVG(from, to) {
-  /* A route diagram, like a bus map: stops evenly spaced along the walk, in order. */
-  var W = 340, H = 196, x0 = 26, x1 = W - 26;
-  var pts = STOPS.map(function (s, i) { var f = i / (N - 1); return [x0 + f * (x1 - x0), 98 + 46 * Math.sin(f * Math.PI * 1.6 - 0.5)]; });
-  var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
-  var out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="The route: ' + STOPS.map(function (s) { return s.short; }).join(', ') + '">';
-  out += '<path d="' + line + '" fill="none" stroke="var(--line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
-  if (to != null) out += '<path d="M' + pts[from][0].toFixed(1) + ' ' + pts[from][1].toFixed(1) + ' L' + pts[to][0].toFixed(1) + ' ' + pts[to][1].toFixed(1) + '" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>';
-  pts.forEach(function (p, i) {
-    var here = i === S.stop && to == null, nxt = i === to, cur = to != null && i === from, heard = S.heard.indexOf(i) >= 0, r = (here || nxt) ? 12 : 9.5;
-    var fill = (here || cur) ? 'var(--accent)' : (heard ? 'var(--teal)' : 'var(--card)');
-    var tc = (here || cur) ? 'var(--card)' : 'var(--ink)';
-    out += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + (nxt || here || cur ? 'var(--accent)' : 'var(--muted)') + '" stroke-width="' + (nxt ? 3 : 1.5) + '"/>';
-    out += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 3.8).toFixed(1) + '" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10.5" font-weight="600" fill="' + tc + '">' + (i + 1) + '</text>';
-    var above = i % 2 === 0, ly = above ? p[1] - r - 7 : p[1] + r + 15;
-    out += '<text x="' + p[0].toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="middle" font-family="Poppins, sans-serif" font-size="10" font-weight="' + (here || nxt ? 600 : 400) + '" fill="' + (here || nxt ? 'var(--ink)' : 'var(--muted)') + '">' + STOPS[i].short + '</text>';
-  });
-  return out + '</svg>';
+  if (!window.TWMap) return '';
+  if (to == null) return TWMap.draw({ current: S.stop, heard: S.heard, label: 'Cartoon map of the walk from the Great Hall to the Pantiles. You are at stop ' + (S.stop + 1) + '.' });
+  return TWMap.draw({ from: from, to: to, heard: S.heard, label: 'Close-up map from stop ' + (from + 1) + ' to stop ' + (to + 1) + '.' });
 }
 function renderMap() {
   $('mapSvg').innerHTML = mapSVG(S.stop, null);
@@ -242,6 +271,7 @@ function renderBetween() {
   $('betweenTitle').textContent = n.title;
   $('betweenImg').src = img(n, true);
   $('betweenMap').innerHTML = mapSVG(S.stop, S.stop + 1);
+  if (window.TWMap) { var lg = TWMap.leg(S.stop); $('legTime').textContent = 'About ' + lg.minutes + (lg.minutes === 1 ? ' minute' : ' minutes') + ' · ' + lg.metres + ' m'; $('legGuide').textContent = TWMap.guide(S.stop); }
   $('betweenGoogle').href = gmaps(n.ll); $('betweenApple').href = amaps(n.ll);
   $('imHereLabel').textContent = 'I’m here · play ' + (S.stop + 2);
   $('replayLabel').textContent = 'Replay ' + (S.stop + 1);
@@ -277,7 +307,7 @@ document.querySelector('[data-close]').addEventListener('click', function () { s
 $('s-settings').addEventListener('click', function (e) { if (e.target === $('s-settings')) sheet(false); });
 $('restartTour').addEventListener('click', function () { sheet(false); warm(); goStop(0, true); seekTo(0); });
 $('clearAll').addEventListener('click', function () {
-  pause(); S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false }; save(); loaded = -1;
+  pause(); S = { stop: 0, pos: 0, heard: [], rate: 1, started: false, agreed: false, fs: 16 }; save(); loaded = -1;
   try { caches.delete(AUDIO_CACHE); } catch (e) {}
   sheet(false); show('start'); toast('Progress and downloads cleared.');
 });
@@ -285,7 +315,7 @@ $('clearAll').addEventListener('click', function () {
 /* ---------- offline: save audio to the phone ---------- */
 var hasCache = 'caches' in window;
 function keepForOffline(file) {
-  if (!hasCache || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
+  if (!hasCache || !navigator.serviceWorker) return;
   caches.open(AUDIO_CACHE).then(function (c) { return c.match(file).then(function (hit) { if (!hit) return fetch(file).then(function (r) { if (r.ok && r.status === 200) return c.put(file, r); }); }); }).catch(function () {});
 }
 function offlineStatus() {
@@ -296,18 +326,38 @@ function offlineStatus() {
     $('saveOffline').hidden = n === N;
   }).catch(function () {});
 }
-$('saveOffline').addEventListener('click', function () {
-  var btn = $('saveOffline'); btn.disabled = true; btn.textContent = 'Saving…'; $('dlBar').hidden = false;
-  var done = 0;
-  caches.open(AUDIO_CACHE).then(function (c) {
-    return STOPS.reduce(function (p, s) {
-      return p.then(function () { return c.match(s.audio); }).then(function (hit) { return hit || fetch(s.audio).then(function (r) { if (!r.ok) throw new Error('load'); return c.put(s.audio, r); }); })
-        .then(function () { done++; $('dlFill').style.width = (done / N * 100) + '%'; });
+/* Save the whole tour as soon as the page opens, one stop at a time, current stop first. */
+var saving = null;
+function saveAll(loud) {
+  if (!hasCache) return Promise.resolve();
+  if (saving) return saving;
+  var order = STOPS.map(function (s, i) { return i; }).sort(function (a, b) { return (a === S.stop ? -1 : 0) - (b === S.stop ? -1 : 0); });
+  var done = 0, btn = $('saveOffline');
+  btn.disabled = true; btn.textContent = 'Saving…'; $('dlBar').hidden = false;
+  saving = caches.open(AUDIO_CACHE).then(function (c) {
+    return order.reduce(function (p, i) {
+      var f = STOPS[i].audio;
+      return p.then(function () { return c.match(f); }).then(function (hit) { return hit || fetch(f).then(function (r) { if (!r.ok || r.status !== 200) throw new Error('load'); return c.put(f, r); }); })
+        .then(function () { done++; $('dlFill').style.width = (done / N * 100) + '%'; saveChip(done); });
     }, Promise.resolve());
-  }).then(function () { toast('Saved. The whole tour now plays without signal.'); })
-    .catch(function () { toast('Saving stopped. Check your connection and try again.'); })
-    .then(function () { btn.disabled = false; btn.textContent = 'Save the tour to this phone'; $('dlBar').hidden = true; offlineStatus(); });
-});
+  }).then(function () { saveChip(N); if (loud) toast('Saved. The whole tour now plays without signal.'); })
+    .catch(function () { saveChip(-1); if (loud) toast('Saving stopped. Check your connection and try again.'); })
+    .then(function () { saving = null; btn.disabled = false; btn.textContent = 'Save the tour to this phone'; $('dlBar').hidden = true; offlineStatus(); });
+  return saving;
+}
+function saveChip(done) {
+  var c = $('saveChip'); if (!c) return;
+  c.hidden = false;
+  if (done === N) { c.className = 'savechip done'; c.textContent = 'Saved to your phone · plays without signal'; }
+  else if (done < 0) { c.className = 'savechip'; c.textContent = 'Not fully saved yet · will try again when you have signal'; }
+  else { c.className = 'savechip'; c.textContent = 'Saving the tour to your phone… ' + done + ' of ' + N; }
+}
+$('saveOffline').addEventListener('click', function () { saveAll(true); });
+if (hasCache) {
+  var startSaving = function () { saveChip(0); saveAll(false); };
+  if (document.readyState === 'complete') setTimeout(startSaving, 300); else window.addEventListener('load', function () { setTimeout(startSaving, 300); });
+  window.addEventListener('online', function () { saveAll(false); });
+}
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
 }
