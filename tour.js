@@ -112,10 +112,10 @@ function media(force) {
     var ms = navigator.mediaSession;
     if (force || mediaKey !== s.id || !ms.metadata) {
       mediaKey = s.id;
-      var art = [96, 192, 256, 384, 512].map(function (px) { return { src: new URL('media/art/' + s.img + '-' + px + '.jpg', location.href).href, sizes: px + 'x' + px, type: 'image/jpeg' }; });
+      var art = [512, 384, 256, 192, 96].map(function (px) { return { src: new URL('media/art/' + s.img + '-' + px + '.jpg', location.href).href, sizes: px + 'x' + px, type: 'image/jpeg' }; });
       ms.metadata = new MediaMetadata({ title: title, artist: sub, album: 'Royal Tunbridge Wells', artwork: art });
     }
-    ms.playbackState = playing() ? 'playing' : 'paused';
+    ms.playbackState = playing() ? 'playing' : (loaded < 0 || !au.src ? 'none' : 'paused');
     if (handlersSet) return; handlersSet = true;
     var h = { play: function () { if (!playing()) toggle(); }, pause: pause, seekbackward: function () { seekBy(-10); }, seekforward: function () { seekBy(10); },
       seekto: function (d) { if (d && d.seekTime != null) seekTo(d.seekTime); },
@@ -125,6 +125,8 @@ function media(force) {
 }
 au.addEventListener('playing', function () { if (chiming) return; media(true); posState(true); setTimeout(function () { if (!chiming && playing()) { media(true); posState(true); } }, 700); });
 au.addEventListener('loadedmetadata', function () { if (!chiming) { media(); posState(true); } });
+// iPhone can drop the details when the page goes to the background and comes back: send them again
+['visibilitychange', 'pageshow', 'focus'].forEach(function (ev) { (ev === 'visibilitychange' ? document : window).addEventListener(ev, function () { if (!chiming && au.src && loaded >= 0) { handlersSet = false; media(true); posState(true); } }); });
 au.addEventListener('ratechange', function () { if (!chiming) posState(true); });
 au.addEventListener('seeked', function () { if (!chiming) posState(true); });
 var posAt = 0;
